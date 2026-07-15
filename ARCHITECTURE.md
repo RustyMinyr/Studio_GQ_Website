@@ -12,7 +12,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 
 ## Route model
 
-- `/`: single-page experience with hero, services, about, equipment, FAQ and booking sections.
+- `/`: single-page experience with hero, services, about, equipment, a photographic studio interlude, FAQ and booking sections.
 - `/about`, `/spaces`, `/equipment`, `/faq`, and `/contact` redirect to matching homepage anchors. `/gallery` redirects to the homepage.
 - `/api/contact`: validated JSON POST endpoint with honeypot and rate-limit-ready response headers.
 - `sitemap.ts` and `robots.ts`: canonical discovery for `https://www.studiogq.co.za`.
@@ -39,7 +39,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 ## Accessibility contract
 
 - One page-level `h1`, sequential headings, semantic landmarks, and a visible skip link.
-- Keyboard-operable mobile menu, FAQ accordion, lightbox, and form.
+- Keyboard-operable mobile menu, FAQ accordion, and form.
 - Escape closes overlays; focus remains visible and returns to the triggering control.
 - Minimum 44px touch targets, explicit labels, status announcements, and no reliance on colour alone.
 - Body copy and controls must meet WCAG AA contrast. Reduced motion is mandatory.

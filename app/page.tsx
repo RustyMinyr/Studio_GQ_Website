@@ -6,6 +6,7 @@ import { EquipmentSection } from "@/components/home/EquipmentSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { Hero } from "@/components/home/Hero";
 import { ServicesGrid } from "@/components/home/ServicesGrid";
+import { StudioMomentsSection } from "@/components/home/StudioMomentsSection";
 
 export const metadata: Metadata = {
   title: {
@@ -25,6 +26,7 @@ export default function Home() {
       <ServicesGrid />
       <AboutStudio />
       <EquipmentSection />
+      <StudioMomentsSection />
       <FaqSection />
       <ContactSection />
     </main>

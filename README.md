@@ -34,7 +34,7 @@ The supplied imagery does not include distinct greenscreen, podcast-room, or mee
 
 ## Main route
 
-- `/` — single-page Studio GQ experience with hero, services, about, equipment, FAQ and booking sections
+- `/` — single-page Studio GQ experience with hero, services, about, equipment, studio imagery, FAQ and booking sections
 - Legacy marketing URLs redirect to their matching homepage section; gallery redirects to the homepage
 - `/privacy` and `/terms` remain separate legal routes
 
