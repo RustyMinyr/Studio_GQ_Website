@@ -9,7 +9,7 @@ export function Hero() {
       aria-labelledby="home-hero-heading"
       className="relative isolate min-h-[100svh] overflow-hidden bg-[#050505] text-white"
     >
-      <div className="absolute inset-y-0 right-0 -z-20 w-full lg:w-[72%] xl:w-[70%]">
+      <div className="absolute inset-y-0 right-0 -z-20 w-full lg:w-[72%] lg:[-webkit-mask-image:linear-gradient(to_right,transparent_0%,black_24%)] lg:[mask-image:linear-gradient(to_right,transparent_0%,black_24%)] xl:w-[70%]">
         <Image
           unoptimized
           src="/images/hero-studio-gq.webp"

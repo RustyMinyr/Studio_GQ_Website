@@ -93,7 +93,7 @@ export function ServicesGrid() {
                   <article className="flex min-h-[240px] flex-col px-1 py-8 pr-7 sm:min-h-[270px] sm:px-7 xl:min-h-[300px] xl:px-6">
                     <Icon
                       aria-hidden="true"
-                      className="h-8 w-8 sm:h-9 sm:w-9"
+                      className="mx-auto h-10 w-10 sm:h-11 sm:w-11"
                       strokeWidth={1.25}
                     />
                     <div className="mt-auto pt-14">
