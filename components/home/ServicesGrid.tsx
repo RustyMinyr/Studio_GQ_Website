@@ -91,7 +91,11 @@ export function ServicesGrid() {
                   className="border-b border-[#a7a7a3]/50 sm:border-r"
                 >
                   <article className="flex min-h-[240px] flex-col px-1 py-8 pr-7 sm:min-h-[270px] sm:px-7 xl:min-h-[300px] xl:px-6">
-                    <Icon aria-hidden="true" className="h-6 w-6" strokeWidth={1.35} />
+                    <Icon
+                      aria-hidden="true"
+                      className="h-8 w-8 sm:h-9 sm:w-9"
+                      strokeWidth={1.25}
+                    />
                     <div className="mt-auto pt-14">
                       <h3 className="text-lg font-normal tracking-[-0.02em]">
                         {service.title}

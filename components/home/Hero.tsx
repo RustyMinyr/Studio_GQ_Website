@@ -9,22 +9,24 @@ export function Hero() {
       aria-labelledby="home-hero-heading"
       className="relative isolate min-h-[100svh] overflow-hidden bg-[#050505] text-white"
     >
-      <Image
-        unoptimized
-        src="/images/hero-studio-gq.webp"
-        alt="A model in a black dress photographed during a Studio GQ production"
-        fill
-        priority
-        sizes="100vw"
-        className="-z-20 object-cover object-[58%_center] sm:object-[62%_center] lg:object-[72%_center]"
+      <div className="absolute inset-y-0 right-0 -z-20 w-full lg:w-[72%] xl:w-[70%]">
+        <Image
+          unoptimized
+          src="/images/hero-studio-gq.webp"
+          alt="A model in a black dress photographed during a Studio GQ production"
+          fill
+          priority
+          sizes="(min-width: 1280px) 70vw, (min-width: 1024px) 72vw, 100vw"
+          className="object-cover object-center"
+        />
+      </div>
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(0,0,0,0.98)_0%,rgba(0,0,0,0.92)_18%,rgba(0,0,0,0.66)_34%,rgba(0,0,0,0.34)_46%,rgba(0,0,0,0.08)_58%,rgba(0,0,0,0)_70%)] max-lg:bg-[linear-gradient(90deg,rgba(0,0,0,0.93)_0%,rgba(0,0,0,0.76)_45%,rgba(0,0,0,0.24)_100%)]"
       />
       <div
         aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(0,0,0,1)_0%,rgba(0,0,0,0.96)_22%,rgba(0,0,0,0.72)_42%,rgba(0,0,0,0.18)_66%,rgba(0,0,0,0)_82%)] max-lg:bg-[linear-gradient(90deg,rgba(0,0,0,0.97)_0%,rgba(0,0,0,0.86)_45%,rgba(0,0,0,0.35)_100%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(0,0,0,0.66)_0%,rgba(0,0,0,0.08)_50%,rgba(0,0,0,0.34)_100%)]"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(0,0,0,0.34)_0%,rgba(0,0,0,0.03)_52%,rgba(0,0,0,0.18)_100%)] max-lg:bg-[linear-gradient(0deg,rgba(0,0,0,0.48)_0%,rgba(0,0,0,0.04)_52%,rgba(0,0,0,0.2)_100%)]"
       />
 
       <div className="mx-auto flex min-h-[100svh] w-full max-w-[1400px] items-end px-5 pb-16 pt-32 sm:px-8 sm:pb-20 lg:items-center lg:px-12 lg:pb-12 lg:pt-36">
