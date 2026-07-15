@@ -24,13 +24,13 @@ async function fetchSite(pathname, init) {
 }
 
 test("renders the complete accessible booking form", async () => {
-  const response = await fetchSite("/contact", {
+  const response = await fetchSite("/", {
     headers: { accept: "text/html" },
   });
   assert.equal(response.status, 200);
 
   const html = await response.text();
-  assert.match(html, /<title>Contact &amp; Bookings \| Studio GQ<\/title>/i);
+  assert.match(html, /<title>Studio GQ \| Film, Photography &amp; Podcast Studio in Gqeberha<\/title>/i);
   assert.match(html, /<main[\s>]/i);
   assert.match(html, /<h1[\s>]/i);
   assert.match(html, /<form[\s>]/i);
@@ -133,8 +133,8 @@ test("publishes canonical sitemap and robots directives", async () => {
     sitemapResponse.text(),
     robotsResponse.text(),
   ]);
-  assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/contact/);
-  assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/gallery/);
+  assert.doesNotMatch(sitemap, /https:\/\/www\.studiogq\.co\.za\/contact/);
+  assert.doesNotMatch(sitemap, /https:\/\/www\.studiogq\.co\.za\/gallery/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/privacy/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/terms/);
   assert.match(robots, /Disallow: \/api\//i);
@@ -142,7 +142,7 @@ test("publishes canonical sitemap and robots directives", async () => {
 });
 
 test("renders every public route with one main landmark and live assets", async () => {
-  const routes = ["/", "/about", "/equipment", "/gallery", "/faq", "/contact", "/privacy", "/terms"];
+  const routes = ["/", "/privacy", "/terms"];
 
   for (const route of routes) {
     const response = await fetchSite(route, { headers: { accept: "text/html" } });
@@ -155,14 +155,9 @@ test("renders every public route with one main landmark and live assets", async 
   }
 });
 
-test("uses route-specific social URLs and optimized image assets", async () => {
-  for (const route of ["/about", "/equipment", "/gallery", "/faq", "/contact"]) {
-    const response = await fetchSite(route, { headers: { accept: "text/html" } });
-    const html = await response.text();
-    assert.match(html, new RegExp(`<meta property="og:url" content="https://www\\.studiogq\\.co\\.za${route}"`, "i"));
-  }
-
+test("uses canonical social metadata and optimized image assets", async () => {
   const homepage = await (await fetchSite("/", { headers: { accept: "text/html" } })).text();
+  assert.match(homepage, /<meta property="og:url" content="https:\/\/www\.studiogq\.co\.za\/?"/i);
   assert.match(homepage, /hero-studio-gq\.webp/i);
   assert.doesNotMatch(homepage, /studio-gq-white-transparent\.svg/i);
 });

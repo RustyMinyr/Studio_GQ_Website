@@ -8,7 +8,8 @@ export function AboutStudio() {
   return (
     <section
       aria-labelledby="about-studio-heading"
-      className="bg-[#050505] px-5 py-24 text-white sm:px-8 sm:py-28 lg:px-12 lg:py-36"
+      className="scroll-mt-24 bg-[#050505] px-5 py-24 text-white sm:px-8 sm:py-28 lg:px-12 lg:py-36"
+      id="about"
     >
       <div className="mx-auto grid w-full max-w-[1400px] items-center gap-14 lg:grid-cols-12 lg:gap-16 xl:gap-24">
         <Reveal className="lg:col-span-7">
@@ -38,8 +39,8 @@ export function AboutStudio() {
             here to help you focus on what matters most{"\u2014"}your creative work.
           </p>
           <div className="mt-9">
-            <ArrowLink href="/about" variant="outline-light">
-              Learn more about the studio
+            <ArrowLink href="#equipment" variant="outline-light">
+              Explore equipment & support
             </ArrowLink>
           </div>
         </Reveal>

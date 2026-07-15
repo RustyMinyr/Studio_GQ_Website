@@ -54,10 +54,10 @@ export function Hero() {
           </Reveal>
 
           <Reveal delay={0.32} className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <ArrowLink href="/contact" variant="light">
+            <ArrowLink href="#contact" variant="light">
               Book the studio
             </ArrowLink>
-            <ArrowLink href="/about#spaces" variant="outline-light">
+            <ArrowLink href="#about" variant="outline-light">
               Explore the space
             </ArrowLink>
           </Reveal>

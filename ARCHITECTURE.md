@@ -12,8 +12,8 @@ This file is the source of truth for every contributor. The supplied brief, logo
 
 ## Route model
 
-- `/`: fixed sequence of hero, services, about, gallery strip, booking CTA, footer.
-- `/about`, `/equipment`, `/gallery`, `/faq`, `/contact`: editorial internal pages using the same compact banner and shell. The former `/spaces` content now lives at `/about#spaces`, with the old route retained as a redirect.
+- `/`: single-page experience with hero, services, about, equipment, FAQ and booking sections.
+- `/about`, `/spaces`, `/equipment`, `/faq`, and `/contact` redirect to matching homepage anchors. `/gallery` redirects to the homepage.
 - `/api/contact`: validated JSON POST endpoint with honeypot and rate-limit-ready response headers.
 - `sitemap.ts` and `robots.ts`: canonical discovery for `https://www.studiogq.co.za`.
 
@@ -21,8 +21,8 @@ This file is the source of truth for every contributor. The supplied brief, logo
 
 - `components/ui/*`: shared primitives only (`ArrowLink`, `SectionLabel`, `Reveal`, `PageHero`, layout helpers).
 - `components/shell/*`: site-wide `Header`, `MobileMenu`, and `Footer`.
-- `components/home/*`: homepage sections. Never imported by internal page modules.
-- `components/content/*`: internal-page interactive and editorial components only.
+- `components/home/*`: all primary one-page sections.
+- `components/content/*`: shared interactive content such as the FAQ accordion.
 - `components/contact/*`: form UI and submission state only.
 - `lib/*`: typed content, metadata helpers, image maps, and validation. No React components.
 
@@ -68,8 +68,8 @@ The supplied set does not include distinct greenscreen, podcast-room, or boardro
 ## Parallel ownership
 
 - Homepage UI agent: `app/page.tsx` and `components/home/*` only.
-- Internal routes: `app/about`, `app/equipment`, `app/gallery`, `app/faq`, `app/contact`, and shared `components/content/*`.
-- Backend/SEO/QA agent: `app/contact`, `app/api/contact`, `lib/contact-schema.ts`, `app/sitemap.ts`, `app/robots.ts`, and test files only.
+- One-page sections: `components/home/*`, with legacy route redirects under `app/*`.
+- Backend/SEO/QA: `app/api/contact`, `lib/contact-schema.ts`, `app/sitemap.ts`, `app/robots.ts`, and test files.
 - Lead agent: `app/layout.tsx`, `app/globals.css`, `components/ui/*`, `components/shell/*`, shared `lib/site-content.ts`, assets, dependencies, integration, documentation, build, browser QA, and deployment.
 
 Agents must not edit files outside their ownership. If a missing shared primitive blocks work, they should use the documented import contract and report it for lead integration instead of creating a duplicate.

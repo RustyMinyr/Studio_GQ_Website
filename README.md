@@ -32,15 +32,11 @@ The site uses only supplied Studio GQ photography and final stacked logo files. 
 
 The supplied imagery does not include distinct greenscreen, podcast-room, or meeting-room photographs. Those spaces are described in copy without misrepresenting unrelated imagery.
 
-## Main routes
+## Main route
 
-- `/` — homepage
-- `/about` — studio story
-- `/about` — studio story and available spaces
-- `/equipment` — equipment categories and production support
-- `/gallery` — responsive editorial gallery and keyboard-accessible lightbox
-- `/faq` — booking FAQs
-- `/contact` — booking enquiry form and verified contact details
+- `/` — single-page Studio GQ experience with hero, services, about, equipment, FAQ and booking sections
+- Legacy marketing URLs redirect to their matching homepage section; gallery redirects to the homepage
+- `/privacy` and `/terms` remain separate legal routes
 
 ## Deployment
 

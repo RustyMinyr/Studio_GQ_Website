@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
 import { AboutStudio } from "@/components/home/AboutStudio";
-import { BookingCta } from "@/components/home/BookingCta";
-import { GalleryStrip } from "@/components/home/GalleryStrip";
+import { ContactSection } from "@/components/home/ContactSection";
+import { EquipmentSection } from "@/components/home/EquipmentSection";
+import { FaqSection } from "@/components/home/FaqSection";
 import { Hero } from "@/components/home/Hero";
 import { ServicesGrid } from "@/components/home/ServicesGrid";
 
@@ -23,8 +24,9 @@ export default function Home() {
       <Hero />
       <ServicesGrid />
       <AboutStudio />
-      <GalleryStrip />
-      <BookingCta />
+      <EquipmentSection />
+      <FaqSection />
+      <ContactSection />
     </main>
   );
 }

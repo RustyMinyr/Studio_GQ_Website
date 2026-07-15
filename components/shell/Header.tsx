@@ -10,6 +10,7 @@ export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [activeHref, setActiveHref] = useState("/");
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -19,6 +20,15 @@ export function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const updateActiveHref = () => {
+      setActiveHref(window.location.hash ? `/${window.location.hash}` : "/");
+    };
+    updateActiveHref();
+    window.addEventListener("hashchange", updateActiveHref);
+    return () => window.removeEventListener("hashchange", updateActiveHref);
+  }, [pathname]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -75,12 +85,22 @@ export function Header() {
         </Link>
         <nav aria-label="Primary navigation" className="site-header__nav">
           {navigation.map((item) => (
-            <Link key={item.href} href={item.href} aria-current={pathname === item.href ? "page" : undefined}>
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={
+                pathname === "/" && activeHref === item.href
+                  ? item.href === "/"
+                    ? "page"
+                    : "location"
+                  : undefined
+              }
+            >
               {item.label}
             </Link>
           ))}
         </nav>
-        <Link href="/contact" className="site-header__cta">
+        <Link href="/#contact" className="site-header__cta">
           Book the studio <span aria-hidden="true">{"\u2192"}</span>
         </Link>
         <button
@@ -104,7 +124,7 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          <Link href="/contact" className="mobile-menu__book" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>
+          <Link href="/#contact" className="mobile-menu__book" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>
             Book the studio <span aria-hidden="true">{"\u2192"}</span>
           </Link>
         </nav>

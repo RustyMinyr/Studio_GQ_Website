@@ -57,7 +57,7 @@ button { cursor: pointer; }
 .site-header__nav { display: flex; align-items: center; justify-content: center; gap: clamp(1.2rem, 2.2vw, 2.5rem); }
 .site-header__nav a { position: relative; font-size: .875rem; letter-spacing: .06em; }
 .site-header__nav a::after { position: absolute; right: 0; bottom: -.55rem; left: 0; height: 1px; background: currentColor; content: ""; transform: scaleX(0); transition: transform .25s ease; }
-.site-header__nav a:hover::after, .site-header__nav a[aria-current="page"]::after { transform: scaleX(1); }
+.site-header__nav a:hover::after, .site-header__nav a[aria-current]::after { transform: scaleX(1); }
 .site-header__cta { display: inline-flex; min-height: 2.8rem; align-items: center; gap: .8rem; border: 1px solid rgba(255,255,255,.6); padding: .75rem 1rem; font-size: .75rem; font-weight: 600; letter-spacing: .11em; text-transform: uppercase; }
 .site-header__menu-button { display: none; width: 2.75rem; height: 2.75rem; border: 0; background: transparent; color: var(--white); }
 .site-header__menu-button span { display: block; width: 1.5rem; height: 1px; margin: .35rem auto; background: currentColor; transition: transform .25s ease; }
