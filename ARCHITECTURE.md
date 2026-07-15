@@ -13,7 +13,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 ## Route model
 
 - `/`: fixed sequence of hero, services, about, gallery strip, booking CTA, footer.
-- `/about`, `/spaces`, `/equipment`, `/gallery`, `/faq`, `/contact`: editorial internal pages using the same shell.
+- `/about`, `/equipment`, `/gallery`, `/faq`, `/contact`: editorial internal pages using the same compact banner and shell. The former `/spaces` content now lives at `/about#spaces`, with the old route retained as a redirect.
 - `/api/contact`: validated JSON POST endpoint with honeypot and rate-limit-ready response headers.
 - `sitemap.ts` and `robots.ts`: canonical discovery for `https://www.studiogq.co.za`.
 
@@ -68,7 +68,7 @@ The supplied set does not include distinct greenscreen, podcast-room, or boardro
 ## Parallel ownership
 
 - Homepage UI agent: `app/page.tsx` and `components/home/*` only.
-- Internal routes agent: `app/about`, `app/spaces`, `app/equipment`, `app/gallery`, `app/faq`, and `components/content/*` only.
+- Internal routes: `app/about`, `app/equipment`, `app/gallery`, `app/faq`, `app/contact`, and shared `components/content/*`.
 - Backend/SEO/QA agent: `app/contact`, `app/api/contact`, `lib/contact-schema.ts`, `app/sitemap.ts`, `app/robots.ts`, and test files only.
 - Lead agent: `app/layout.tsx`, `app/globals.css`, `components/ui/*`, `components/shell/*`, shared `lib/site-content.ts`, assets, dependencies, integration, documentation, build, browser QA, and deployment.
 

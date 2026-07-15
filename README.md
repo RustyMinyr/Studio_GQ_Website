@@ -36,7 +36,7 @@ The supplied imagery does not include distinct greenscreen, podcast-room, or mee
 
 - `/` — homepage
 - `/about` — studio story
-- `/spaces` — available spaces
+- `/about` — studio story and available spaces
 - `/equipment` — equipment categories and production support
 - `/gallery` — responsive editorial gallery and keyboard-accessible lightbox
 - `/faq` — booking FAQs

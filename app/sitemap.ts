@@ -6,7 +6,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: baseUrl, changeFrequency: "monthly", priority: 1 },
     { url: `${baseUrl}/about`, changeFrequency: "yearly", priority: 0.7 },
-    { url: `${baseUrl}/spaces`, changeFrequency: "monthly", priority: 0.9 },
     { url: `${baseUrl}/equipment`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/gallery`, changeFrequency: "monthly", priority: 0.8 },
     { url: `${baseUrl}/faq`, changeFrequency: "yearly", priority: 0.6 },

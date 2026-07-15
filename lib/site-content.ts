@@ -1,8 +1,8 @@
 export const siteUrl = "https://www.studiogq.co.za";
 
 export const navigation = [
+  { href: "/", label: "Home" },
   { href: "/about", label: "About" },
-  { href: "/spaces", label: "Spaces" },
   { href: "/equipment", label: "Equipment" },
   { href: "/gallery", label: "Gallery" },
   { href: "/faq", label: "FAQ" },

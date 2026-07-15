@@ -70,13 +70,14 @@ button { cursor: pointer; }
 .mobile-menu__nav > a span { color: var(--mid-grey); font-size: .65rem; letter-spacing: .14em; }
 .mobile-menu__book { margin-top: 2rem; font-size: .75rem; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; }
 
-.page-hero { padding: 11rem 0 7rem; }
+.page-hero { padding: 9rem 0 4.5rem; }
 .page-hero--dark { background: var(--black); color: var(--white); }
 .page-hero--light { background: var(--off-white); color: var(--black); }
-.page-hero__inner { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(16rem, .65fr); gap: 3rem; align-items: end; }
+.page-hero__inner { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(16rem, .8fr); gap: 2rem 3rem; align-items: end; }
 .page-hero .section-label { grid-column: 1 / -1; margin-bottom: 0; }
-.page-hero h1 { max-width: 16ch; margin: 0; font-size: clamp(3.5rem, 8vw, 8.5rem); font-weight: 400; letter-spacing: -.055em; line-height: .9; }
-.page-hero__intro { max-width: 38rem; margin: 0 0 .5rem; font-size: clamp(1rem, 1.4vw, 1.25rem); line-height: 1.65; }
+.page-hero h1 { max-width: 16ch; margin: 0; font-size: clamp(3rem, 5.5vw, 5.75rem); font-weight: 400; letter-spacing: -.05em; line-height: .92; }
+.page-hero__intro { max-width: 36rem; margin: 0 0 .25rem; font-size: clamp(.95rem, 1.2vw, 1.125rem); line-height: 1.6; }
+.page-hero__actions { justify-self: start; }
 
 .site-footer { background: var(--black); color: var(--white); padding-top: clamp(5rem, 9vw, 9rem); }
 .site-footer__grid { display: grid; grid-template-columns: 1.5fr 1fr .7fr .7fr 1.9fr; gap: clamp(2rem, 4vw, 5rem); padding-bottom: clamp(4rem, 8vw, 7rem); }
@@ -107,10 +108,10 @@ button { cursor: pointer; }
 }
 
 @media (max-width: 720px) {
-  .page-hero { padding: 9rem 0 5rem; }
+  .page-hero { padding: 8rem 0 3.5rem; }
   .page-hero__inner { grid-template-columns: 1fr; gap: 2rem; }
   .page-hero .section-label { grid-column: auto; }
-  .page-hero h1 { font-size: clamp(3rem, 15vw, 5rem); }
+  .page-hero h1 { font-size: clamp(2.75rem, 13vw, 4.5rem); }
   .site-footer__grid { grid-template-columns: 1fr 1fr; }
   .site-footer__brand, .site-footer__newsletter { grid-column: 1 / -1; }
   .site-footer__legal { flex-direction: column; }

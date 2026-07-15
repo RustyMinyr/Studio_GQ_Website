@@ -32,10 +32,8 @@ export function Hero() {
       <div className="mx-auto flex min-h-[100svh] w-full max-w-[1400px] items-end px-5 pb-16 pt-32 sm:px-8 sm:pb-20 lg:items-center lg:px-12 lg:pb-12 lg:pt-36">
         <div className="max-w-[760px]">
           <Reveal delay={0.05}>
-            <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-white/75 sm:text-[11px]">
-              Photography <span aria-hidden="true">{"\u2022"}</span> Film{" "}
-              <span aria-hidden="true">{"\u2022"}</span> Podcast{" "}
-              <span aria-hidden="true">{"\u2022"}</span> Content
+            <p className="text-[10px] font-medium tracking-[0.22em] text-white/75 sm:text-[11px]">
+              film.photography.podcast.
             </p>
           </Reveal>
 
@@ -59,7 +57,7 @@ export function Hero() {
             <ArrowLink href="/contact" variant="light">
               Book the studio
             </ArrowLink>
-            <ArrowLink href="/spaces" variant="outline-light">
+            <ArrowLink href="/about#spaces" variant="outline-light">
               Explore the space
             </ArrowLink>
           </Reveal>

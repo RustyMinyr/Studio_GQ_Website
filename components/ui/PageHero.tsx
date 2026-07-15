@@ -23,9 +23,8 @@ export function PageHero({
         <SectionLabel tone={isDark ? "dark" : "light"}>{eyebrow}</SectionLabel>
         <h1>{title}</h1>
         <p className="page-hero__intro">{intro}</p>
-        {children}
+        {children ? <div className="page-hero__actions">{children}</div> : null}
       </div>
     </section>
   );
 }
-

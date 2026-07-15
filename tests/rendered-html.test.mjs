@@ -142,7 +142,7 @@ test("publishes canonical sitemap and robots directives", async () => {
 });
 
 test("renders every public route with one main landmark and live assets", async () => {
-  const routes = ["/", "/about", "/spaces", "/equipment", "/gallery", "/faq", "/contact", "/privacy", "/terms"];
+  const routes = ["/", "/about", "/equipment", "/gallery", "/faq", "/contact", "/privacy", "/terms"];
 
   for (const route of routes) {
     const response = await fetchSite(route, { headers: { accept: "text/html" } });
@@ -156,7 +156,7 @@ test("renders every public route with one main landmark and live assets", async 
 });
 
 test("uses route-specific social URLs and optimized image assets", async () => {
-  for (const route of ["/about", "/spaces", "/equipment", "/gallery", "/faq", "/contact"]) {
+  for (const route of ["/about", "/equipment", "/gallery", "/faq", "/contact"]) {
     const response = await fetchSite(route, { headers: { accept: "text/html" } });
     const html = await response.text();
     assert.match(html, new RegExp(`<meta property="og:url" content="https://www\\.studiogq\\.co\\.za${route}"`, "i"));
