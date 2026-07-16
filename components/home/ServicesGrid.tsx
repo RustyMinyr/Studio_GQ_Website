@@ -96,8 +96,8 @@ export function ServicesGrid() {
                       className="mx-auto h-10 w-10 sm:h-11 sm:w-11"
                       strokeWidth={1.25}
                     />
-                    <div className="mt-auto pt-14 text-center">
-                      <h3 className="text-lg font-normal tracking-[-0.02em]">
+                    <div className="pt-14 text-center">
+                      <h3 className="h-14 text-lg font-normal leading-7 tracking-[-0.02em]">
                         {service.title}
                       </h3>
                       <p className="mx-auto mt-3 max-w-[26ch] text-sm leading-6 text-[#565656]">

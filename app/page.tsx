@@ -29,6 +29,7 @@ export default function Home() {
       <StudioMomentsSection />
       <FaqSection />
       <ContactSection />
+      <div aria-hidden="true" className="h-16 bg-white sm:h-20 lg:h-24" />
     </main>
   );
 }

@@ -29,8 +29,10 @@ export function EquipmentSection() {
           </h2>
           <p className="mt-8 max-w-md leading-7 text-[#565656] md:text-lg md:leading-8">
             Share your working equipment list early. The Studio GQ team will
-            confirm what is available and help identify any additional
-            requirements for the production.
+            confirm what is available, help identify any additional hire
+            requirements and plan the setup around the needs of the production.
+            Include lighting, grip, audio, backdrops and specialist requests so
+            the practical details can be resolved before the shoot begins.
           </p>
         </Reveal>
 

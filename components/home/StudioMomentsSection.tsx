@@ -57,7 +57,9 @@ export function StudioMomentsSection() {
           </div>
           <p className="max-w-[48ch] text-base leading-7 text-white/65 md:col-span-5 md:justify-self-end">
             From first setup to final frame, Studio GQ gives every production room
-            to take shape.
+            to take shape. Move between portrait, motion, interview and content
+            setups with space for talent, crew and the details that make the final
+            image work.
           </p>
         </Reveal>
 
