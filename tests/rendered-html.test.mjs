@@ -121,6 +121,9 @@ test("renders the complete accessible booking portal", async () => {
   assert.match(html, /full day/i);
   assert.match(html, /R2,500/i);
   assert.match(html, /R4,500/i);
+  assert.match(html, /Gqeberha \/ Eastern Cape/i);
+  assert.match(html, /Production, under one roof/i);
+  assert.match(html, /Production support/i);
   assert.match(html, /name="website"/i);
 });
 

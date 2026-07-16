@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { BookingEnquiryForm } from "@/components/contact/BookingEnquiryForm";
+import { EasternCapeStrip } from "@/components/home/EasternCapeStrip";
 import { PageHero } from "@/components/ui/PageHero";
 import { contactDetails } from "@/lib/site-content";
 
@@ -80,6 +81,8 @@ export default function BookingPage() {
           <BookingEnquiryForm />
         </div>
       </section>
+
+      <EasternCapeStrip />
     </main>
   );
 }
