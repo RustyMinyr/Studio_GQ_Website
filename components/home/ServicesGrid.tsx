@@ -66,9 +66,9 @@ export function ServicesGrid() {
   return (
     <section
       aria-labelledby="services-heading"
-      className="bg-[#f7f7f5] px-5 py-24 text-[#050505] sm:px-8 sm:py-28 lg:px-12 lg:py-36"
+      className="bg-[#f7f7f5] py-24 text-[#050505] sm:py-28 lg:py-36"
     >
-      <div className="mx-auto grid w-full max-w-[1400px] gap-14 lg:grid-cols-12 lg:gap-10">
+      <div className="site-container grid gap-14 lg:grid-cols-12 lg:gap-10">
         <Reveal className="lg:col-span-4 lg:pr-10">
           <SectionLabel tone="light">Built for creators</SectionLabel>
           <h2

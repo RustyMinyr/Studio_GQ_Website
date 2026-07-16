@@ -5,6 +5,16 @@ export const metadata: Metadata = {
   title: "Terms & Conditions",
   description: "Website and booking information terms for Studio GQ.",
   alternates: { canonical: "/terms" },
+  openGraph: {
+    url: "/terms",
+    title: "Terms & Conditions | Studio GQ",
+    description: "Website and booking information terms for Studio GQ.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Terms & Conditions | Studio GQ",
+    description: "Website and booking information terms for Studio GQ.",
+  },
 };
 
 export default function TermsPage() {
@@ -22,4 +32,3 @@ export default function TermsPage() {
     </main>
   );
 }
-

@@ -52,6 +52,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 - Client components must be limited to genuine interaction or motion boundaries.
 - Each route exports distinct metadata and a canonical URL.
 - Root layout owns Open Graph/Twitter defaults and LocalBusiness JSON-LD.
+- The Worker and native Next configuration apply the shared security-header policy from `lib/security-headers.ts`.
 - No analytics, map embed, remote fonts, or third-party scripts in the initial release.
 
 ## Asset map
@@ -63,6 +64,8 @@ This file is the source of truth for every contributor. The supplied brief, logo
 - `gallery/hair-makeup.webp` and `hair-makeup-detail.webp`: optimized supplied preparation photographs.
 - `gallery/behind-the-scenes.webp`: optimized supplied photographed set in progress.
 - `gallery/portrait-seated.webp` and `portrait-seated-wide.webp`: optimized supplied seated portrait variations.
+- `gallery/studio-content-hair-styling.webp` and `studio-portrait-pair.webp`: responsive derivatives of the supplied portrait additions.
+- `videos/studio-gq-overview.mp4` and `gallery/studio-gq-video-poster.jpg`: optimized supplied studio tour and its poster frame.
 - `logos/studio-gq-*-transparent.svg`: supplied masters, preserved unchanged. The site serves small transparent PNG derivatives made from those masters; the logo is never recreated as live text.
 
 The supplied set does not include distinct greenscreen, podcast-room, or boardroom photographs. Pages may describe those spaces, but must not label unrelated photographs as those facilities.

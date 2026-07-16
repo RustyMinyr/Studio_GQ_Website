@@ -7,6 +7,7 @@ const fieldClassName =
 
 export function QuickEnquiryForm() {
   const [feedback, setFeedback] = useState("");
+  const [invalidFields, setInvalidFields] = useState<string[]>([]);
   const feedbackRef = useRef<HTMLParagraphElement>(null);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -14,11 +15,22 @@ export function QuickEnquiryForm() {
     const form = event.currentTarget;
 
     if (!form.checkValidity()) {
+      const invalid = Array.from(form.elements)
+        .filter(
+          (element): element is HTMLInputElement | HTMLTextAreaElement =>
+            (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) &&
+            !element.checkValidity(),
+        )
+        .map((element) => element.name);
+      setInvalidFields(invalid);
       setFeedback("Please complete the required fields before sending.");
-      form.reportValidity();
-      requestAnimationFrame(() => feedbackRef.current?.focus());
+      requestAnimationFrame(() =>
+        form.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(),
+      );
       return;
     }
+
+    setInvalidFields([]);
 
     const data = new FormData(form);
     const name = String(data.get("name") ?? "").trim();
@@ -51,6 +63,8 @@ export function QuickEnquiryForm() {
             Name <span aria-hidden="true">*</span>
           </label>
           <input
+            aria-describedby={invalidFields.includes("name") ? "quick-feedback" : undefined}
+            aria-invalid={invalidFields.includes("name")}
             autoComplete="name"
             className={fieldClassName}
             id="quick-name"
@@ -65,6 +79,8 @@ export function QuickEnquiryForm() {
             Email <span aria-hidden="true">*</span>
           </label>
           <input
+            aria-describedby={invalidFields.includes("email") ? "quick-feedback" : undefined}
+            aria-invalid={invalidFields.includes("email")}
             autoComplete="email"
             className={fieldClassName}
             id="quick-email"
@@ -95,6 +111,8 @@ export function QuickEnquiryForm() {
           How can we help? <span aria-hidden="true">*</span>
         </label>
         <textarea
+          aria-describedby={invalidFields.includes("message") ? "quick-feedback" : undefined}
+          aria-invalid={invalidFields.includes("message")}
           className={`${fieldClassName} min-h-24 resize-y`}
           id="quick-message"
           maxLength={1500}
@@ -113,6 +131,7 @@ export function QuickEnquiryForm() {
         <p
           aria-live="polite"
           className="max-w-sm text-sm leading-6 text-[#a7a7a3] outline-none"
+          id="quick-feedback"
           ref={feedbackRef}
           tabIndex={-1}
         >

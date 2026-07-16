@@ -37,10 +37,10 @@ export function FaqSection() {
   return (
     <section
       aria-labelledby="faq-heading"
-      className="scroll-mt-24 bg-white px-5 py-24 text-[#050505] sm:px-8 sm:py-28 lg:px-12 lg:py-36"
+      className="scroll-mt-24 bg-white py-24 text-[#050505] sm:py-28 lg:py-36"
       id="faq"
     >
-      <div className="mx-auto grid max-w-[1400px] gap-12 lg:grid-cols-12 lg:gap-8">
+      <div className="site-container grid gap-12 lg:grid-cols-12 lg:gap-8">
         <Reveal className="lg:col-span-4">
           <SectionLabel>Before you book</SectionLabel>
           <h2

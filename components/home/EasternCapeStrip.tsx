@@ -9,9 +9,9 @@ export function EasternCapeStrip() {
   return (
     <section
       aria-labelledby="eastern-cape-heading"
-      className="bg-white px-5 py-12 text-[#050505] sm:px-8 sm:py-14 lg:px-12"
+      className="bg-white py-12 text-[#050505] sm:py-14"
     >
-      <div className="mx-auto grid max-w-[1400px] gap-9 lg:grid-cols-12 lg:items-center lg:gap-10">
+      <div className="site-container grid gap-9 lg:grid-cols-12 lg:items-center lg:gap-10">
         <div className="lg:col-span-5">
           <p className="text-xs font-medium tracking-[0.2em] text-[#565656]">
             GQEBERHA / EASTERN CAPE

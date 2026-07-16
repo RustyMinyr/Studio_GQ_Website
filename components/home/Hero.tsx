@@ -29,7 +29,7 @@ export function Hero() {
         className="absolute inset-0 -z-10 bg-[linear-gradient(0deg,rgba(0,0,0,0.34)_0%,rgba(0,0,0,0.03)_52%,rgba(0,0,0,0.18)_100%)] max-lg:bg-[linear-gradient(0deg,rgba(0,0,0,0.48)_0%,rgba(0,0,0,0.04)_52%,rgba(0,0,0,0.2)_100%)]"
       />
 
-      <div className="mx-auto flex min-h-[100svh] w-full max-w-[1400px] items-end px-5 pb-16 pt-32 sm:px-8 sm:pb-20 lg:items-center lg:px-12 lg:pb-12 lg:pt-36">
+      <div className="site-container flex min-h-[100svh] items-end pb-16 pt-32 sm:pb-20 lg:items-center lg:pb-12 lg:pt-36">
         <div className="max-w-[760px]">
           <Reveal delay={0.05}>
             <p className="text-[10px] font-medium tracking-[0.22em] text-white/75 sm:text-[11px]">

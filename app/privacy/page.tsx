@@ -5,6 +5,16 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "How Studio GQ handles information submitted through this website.",
   alternates: { canonical: "/privacy" },
+  openGraph: {
+    url: "/privacy",
+    title: "Privacy Policy | Studio GQ",
+    description: "How Studio GQ handles information submitted through this website.",
+  },
+  twitter: {
+    card: "summary",
+    title: "Privacy Policy | Studio GQ",
+    description: "How Studio GQ handles information submitted through this website.",
+  },
 };
 
 export default function PrivacyPage() {
@@ -15,11 +25,11 @@ export default function PrivacyPage() {
         <div className="mx-auto max-w-3xl space-y-10 leading-7 text-[#565656]">
           <section><h2 className="mb-4 text-2xl font-normal text-[#050505]">Information you provide</h2><p>When you submit a booking enquiry, Studio GQ receives the contact and production details you enter so the team can respond to your request. Please do not include sensitive personal information that is not needed for the booking.</p></section>
           <section><h2 className="mb-4 text-2xl font-normal text-[#050505]">How it is used</h2><p>Enquiry information is used to check availability, prepare an appropriate response, discuss production requirements and administer a booking. It is not sold to third parties.</p></section>
-          <section><h2 className="mb-4 text-2xl font-normal text-[#050505]">Website security</h2><p>The enquiry endpoint uses validation, spam protection and basic request controls. Once a delivery provider is connected, its privacy and retention terms will also apply.</p></section>
+          <section><h2 className="mb-4 text-2xl font-normal text-[#050505]">Storage and service providers</h2><p>When online booking is connected, enquiry details are stored in Studio GQ&apos;s secured booking database so availability can be checked and the request can be managed. In preview mode, the site instead opens a prepared email in your own email application. Technology and email providers may process information only as needed to provide those services.</p></section>
+          <section><h2 className="mb-4 text-2xl font-normal text-[#050505]">Retention and security</h2><p>Studio GQ keeps enquiry and booking information only for as long as it is reasonably needed to respond, administer the production and meet applicable business or legal obligations. The website uses validation, spam protection, access controls and encrypted connections to reduce unauthorised access.</p></section>
           <section><h2 className="mb-4 text-2xl font-normal text-[#050505]">Contact</h2><p>For a privacy question or information request, email <a className="underline" href="mailto:bookings@studiogq.co.za">bookings@studiogq.co.za</a>.</p></section>
         </div>
       </article>
     </main>
   );
 }
-

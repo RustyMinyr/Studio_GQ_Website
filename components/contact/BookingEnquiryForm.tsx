@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useCallback, useRef, useState } from "react";
 
 import { BookingCalendar } from "@/components/contact/BookingCalendar";
@@ -61,6 +62,16 @@ export function BookingEnquiryForm() {
     requestAnimationFrame(() => feedbackRef.current?.focus());
   }
 
+  function focusFirstError(errors: FieldErrors) {
+    requestAnimationFrame(() => {
+      const selector =
+        errors.date?.length || errors.session?.length
+          ? "#booking-calendar"
+          : '[aria-invalid="true"]';
+      formRef.current?.querySelector<HTMLElement>(selector)?.focus();
+    });
+  }
+
   function resetForm() {
     formRef.current?.reset();
     setSelectedDate("");
@@ -109,12 +120,13 @@ export function BookingEnquiryForm() {
     const parsed = bookingSchema.safeParse(rawPayload);
 
     if (!parsed.success) {
-      setFieldErrors(parsed.error.flatten().fieldErrors);
+      const errors = parsed.error.flatten().fieldErrors;
+      setFieldErrors(errors);
       setSubmission({
         kind: "error",
         message: "Check the highlighted fields and try again.",
       });
-      focusFeedback();
+      focusFirstError(errors);
       return;
     }
 
@@ -174,12 +186,14 @@ export function BookingEnquiryForm() {
       }
 
       if (!response.ok) {
-        setFieldErrors(result.errors ?? {});
+        const errors = result.errors ?? {};
+        setFieldErrors(errors);
         setSubmission({
           kind: "error",
           message: result.message ?? "We could not submit your booking. Please try again.",
         });
-        focusFeedback();
+        if (Object.keys(errors).length) focusFirstError(errors);
+        else focusFeedback();
         return;
       }
 
@@ -380,6 +394,14 @@ export function BookingEnquiryForm() {
         >
           {isSubmitting ? "SENDING…" : "CONTINUE BOOKING ENQUIRY →"}
         </button>
+        <p className="max-w-md text-xs leading-5 text-[#a7a7a3]">
+          By sending this enquiry, you agree that Studio GQ may use the details
+          provided to respond and manage the requested booking. Read our{" "}
+          <Link className="underline underline-offset-4" href="/privacy">
+            privacy policy
+          </Link>
+          .
+        </p>
         {calendarConfigured === false ? (
           <p className="max-w-sm text-xs leading-5 text-[#a7a7a3]">
             Preview mode opens a prepared email for you to review and send.

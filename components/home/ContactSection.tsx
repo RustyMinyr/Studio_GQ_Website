@@ -9,7 +9,7 @@ export function ContactSection() {
       className="scroll-mt-24 bg-[#0a0a0a] text-white"
       id="contact"
     >
-      <div className="mx-auto grid max-w-[1400px] gap-10 px-5 py-12 sm:px-8 sm:py-14 lg:grid-cols-[minmax(280px,0.72fr)_minmax(0,1.28fr)] lg:gap-16 lg:px-12 lg:py-16">
+      <div className="site-container grid gap-10 py-12 sm:py-14 lg:grid-cols-[minmax(280px,0.72fr)_minmax(0,1.28fr)] lg:gap-16 lg:py-16">
         <div>
           <p className="text-xs tracking-[0.2em] text-[#a7a7a3]">GET IN TOUCH</p>
           <h2

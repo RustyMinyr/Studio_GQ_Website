@@ -7,9 +7,20 @@ import { contactDetails } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   title: "Online Studio Booking",
-  description:
-    "Check Studio GQ availability and request a half-day or full-day studio booking in Gqeberha.",
+  description: "Check Studio GQ availability and request a half-day or full-day studio booking in Gqeberha.",
   alternates: { canonical: "/booking" },
+  openGraph: {
+    url: "/booking",
+    title: "Book Studio GQ",
+    description: "Check availability and request a half-day or full-day studio booking in Gqeberha.",
+    images: [{ url: "/og.png", width: 1200, height: 630, alt: "Studio GQ — Create Without Compromise" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Book Studio GQ",
+    description: "Check availability and request a Studio GQ session.",
+    images: ["/og.png"],
+  },
 };
 
 export default function BookingPage() {
@@ -26,7 +37,7 @@ export default function BookingPage() {
         aria-labelledby="booking-portal-heading"
         className="bg-[#0a0a0a] text-white"
       >
-        <div className="mx-auto grid max-w-[1400px] items-start gap-10 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[minmax(260px,0.52fr)_minmax(0,1.48fr)] lg:gap-12 lg:px-12 lg:py-24">
+        <div className="site-container grid items-start gap-10 py-16 sm:py-20 xl:grid-cols-[minmax(260px,0.52fr)_minmax(0,1.48fr)] xl:gap-12 xl:py-24">
           <aside className="self-start">
             <p className="text-xs tracking-[0.2em] text-[#a7a7a3]">STUDIO HIRE</p>
             <h2

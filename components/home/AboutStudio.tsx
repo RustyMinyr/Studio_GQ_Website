@@ -8,10 +8,10 @@ export function AboutStudio() {
   return (
     <section
       aria-labelledby="about-studio-heading"
-      className="scroll-mt-24 bg-[#050505] px-5 py-24 text-white sm:px-8 sm:py-28 lg:px-12 lg:py-36"
+      className="scroll-mt-24 bg-[#050505] py-24 text-white sm:py-28 lg:py-36"
       id="about"
     >
-      <div className="mx-auto grid w-full max-w-[1400px] items-center gap-14 lg:grid-cols-12 lg:gap-16 xl:gap-24">
+      <div className="site-container grid items-center gap-14 lg:grid-cols-12 lg:gap-16 xl:gap-24">
         <Reveal className="lg:col-span-7">
           <div className="relative aspect-[4/3] overflow-hidden sm:aspect-[16/10] lg:aspect-[5/4] xl:aspect-[16/11]">
             <Image
@@ -39,12 +39,7 @@ export function AboutStudio() {
             here to help you focus on what matters most{"\u2014"}your creative work.
           </p>
           <div className="mt-9">
-            <ArrowLink
-              href="https://www.instagram.com/filmhouse_studiogq/reels/"
-              rel="noopener noreferrer"
-              target="_blank"
-              variant="outline-light"
-            >
+            <ArrowLink href="#studio-tour" variant="outline-light">
               Watch tour video
             </ArrowLink>
           </div>

@@ -27,9 +27,13 @@ export function Footer() {
         </div>
         <div>
           <p className="site-footer__label">Follow</p>
-          <span>Instagram</span>
-          <span>Facebook</span>
-          <span>YouTube</span>
+          <a
+            href="https://www.instagram.com/filmhouse_studiogq/"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Instagram
+          </a>
         </div>
         <div className="site-footer__newsletter">
           <p className="site-footer__label">Newsletter</p>

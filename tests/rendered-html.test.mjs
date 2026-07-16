@@ -92,12 +92,15 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.doesNotMatch(html, /behind-the-scenes\.webp/i);
   assert.doesNotMatch(html, /hair-makeup-detail\.webp/i);
   assert.doesNotMatch(html, /hair-makeup\.webp/i);
-  assert.match(html, /studio-content-hair-styling\.jpg/i);
-  assert.match(html, /studio-portrait-pair\.jpg/i);
+  assert.match(html, /studio-content-hair-styling\.webp/i);
+  assert.match(html, /studio-portrait-pair\.webp/i);
   assert.doesNotMatch(html, /studio-cyclorama-portrait\.jpg/i);
   assert.match(html, /studio-gq-overview\.mp4/i);
   assert.match(html, /studio-gq-video-poster\.jpg/i);
   assert.match(html, /<video/i);
+  assert.match(html, /href="[^"]*#studio-tour"/i);
+  assert.match(html, /id="studio-tour"/i);
+  assert.match(html, /href="\/privacy"/i);
   assert.match(html, /href="\/booking"/i);
   assert.match(html, />Booking<\/a>/i);
   assert.match(html, /bookings@studiogq\.co\.za/i);
@@ -286,6 +289,19 @@ test("blocks cross-origin booking submissions", async () => {
   assert.equal(response.status, 403);
 });
 
+test("blocks booking submissions without a browser origin", async () => {
+  const response = await fetchSite("/api/bookings", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-forwarded-for": "192.0.2.151",
+    },
+    body: JSON.stringify(validBooking),
+  });
+
+  assert.equal(response.status, 403);
+});
+
 test("silently accepts booking honeypot submissions", async () => {
   const response = await fetchSite(
     "/api/bookings",
@@ -324,6 +340,10 @@ test("renders every public route with one main landmark and live assets", async 
   for (const route of routes) {
     const response = await fetchSite(route, { headers: { accept: "text/html" } });
     assert.equal(response.status, 200, `${route} should render`);
+    assert.match(response.headers.get("content-security-policy") ?? "", /frame-ancestors 'none'/i);
+    assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+    assert.equal(response.headers.get("x-frame-options"), "DENY");
+    assert.equal(response.headers.get("referrer-policy"), "strict-origin-when-cross-origin");
     const html = await response.text();
     assert.equal((html.match(/<main[\s>]/gi) ?? []).length, 1, `${route} should have one main landmark`);
     assert.equal((html.match(/<h1[\s>]/gi) ?? []).length, 1, `${route} should have one h1`);
@@ -332,9 +352,29 @@ test("renders every public route with one main landmark and live assets", async 
   }
 });
 
+test("permanently redirects legacy pages into the one-page experience", async () => {
+  const redirects = new Map([
+    ["/about", "/#about"],
+    ["/spaces", "/#about"],
+    ["/equipment", "/#equipment"],
+    ["/faq", "/#faq"],
+    ["/contact", "/#contact"],
+    ["/gallery", "/"],
+  ]);
+
+  for (const [route, destination] of redirects) {
+    const response = await fetchSite(route, { redirect: "manual" });
+    assert.equal(response.status, 308, `${route} should be permanent`);
+    assert.equal(new URL(response.headers.get("location")).pathname + new URL(response.headers.get("location")).hash, destination);
+  }
+});
+
 test("uses canonical social metadata and optimized image assets", async () => {
   const homepage = await (await fetchSite("/", { headers: { accept: "text/html" } })).text();
   assert.match(homepage, /<meta property="og:url" content="https:\/\/www\.studiogq\.co\.za\/?"/i);
   assert.match(homepage, /hero-studio-gq\.webp/i);
   assert.doesNotMatch(homepage, /studio-gq-white-transparent\.svg/i);
+
+  const booking = await (await fetchSite("/booking", { headers: { accept: "text/html" } })).text();
+  assert.match(booking, /<meta property="og:url" content="https:\/\/www\.studiogq\.co\.za\/booking"/i);
 });

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { bookingSessions } from "@/lib/booking-schema";
+import { bookingSessions, currentJohannesburgDate } from "@/lib/booking-schema";
 
 type SessionValue = (typeof bookingSessions)[number]["value"];
 type OccupiedSlot = "morning" | "afternoon";
@@ -55,8 +55,8 @@ function monthKey(date: Date) {
 }
 
 function startOfToday() {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const [year, month, day] = currentJohannesburgDate().split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function isSessionOccupied(session: SessionValue, slots: Set<OccupiedSlot>) {
@@ -162,19 +162,21 @@ export function BookingCalendar({
 
   return (
     <fieldset
-      aria-describedby="booking-availability-status booking-rate-note"
-      className="border border-[#565656] p-4 sm:p-5"
+      aria-describedby={`booking-availability-status booking-rate-note${dateError?.length ? " date-error" : ""}${sessionError?.length ? " session-error" : ""}`}
+      className="border border-[#565656] p-4 outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a] sm:p-5"
+      id="booking-calendar"
+      tabIndex={-1}
     >
       <legend className="px-2 text-xs tracking-[0.18em] text-[#a7a7a3]">
         CHOOSE A DATE &amp; SESSION
       </legend>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.92fr)] lg:gap-7">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(300px,0.92fr)] xl:gap-7">
         <div>
           <div className="flex items-center justify-between gap-3">
             <button
               aria-label="Previous month"
-              className="grid size-10 place-items-center border border-[#565656] transition-colors hover:border-white disabled:cursor-not-allowed disabled:opacity-30"
+              className="grid size-11 place-items-center border border-[#565656] transition-colors hover:border-white disabled:cursor-not-allowed disabled:opacity-30"
               disabled={!canGoBack}
               onClick={() => changeMonth(-1)}
               type="button"
@@ -186,7 +188,7 @@ export function BookingCalendar({
             </p>
             <button
               aria-label="Next month"
-              className="grid size-10 place-items-center border border-[#565656] transition-colors hover:border-white"
+              className="grid size-11 place-items-center border border-[#565656] transition-colors hover:border-white"
               onClick={() => changeMonth(1)}
               type="button"
             >

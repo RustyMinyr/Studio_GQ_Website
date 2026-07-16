@@ -17,11 +17,11 @@ export function Header() {
   const menuRef = useRef<HTMLDivElement>(null);
 
   function getAriaCurrent(href: string) {
-    if (pathname === href) return "page" as const;
-    if (pathname === "/" && activeHref === href) {
+    if (pathname === "/") {
+      if (activeHref !== href) return undefined;
       return href === "/" ? ("page" as const) : ("location" as const);
     }
-    return undefined;
+    return pathname === href ? ("page" as const) : undefined;
   }
 
   useEffect(() => {
@@ -34,6 +34,7 @@ export function Header() {
   useEffect(() => {
     const updateActiveHref = () => {
       setActiveHref(window.location.hash ? `/${window.location.hash}` : "/");
+      setOpen(false);
     };
     updateActiveHref();
     window.addEventListener("hashchange", updateActiveHref);
@@ -84,7 +85,12 @@ export function Header() {
   return (
     <header className={`site-header ${scrolled || pathname !== "/" ? "site-header--solid" : ""}`}>
       <div className="site-container site-header__inner">
-        <Link href="/" className="site-header__logo" aria-label="Studio GQ home">
+        <Link
+          href="/"
+          className="site-header__logo"
+          aria-label="Studio GQ home"
+          onClick={() => setOpen(false)}
+        >
           <Image
             unoptimized
             src="/logos/studio-gq-white.png"
@@ -120,7 +126,7 @@ export function Header() {
           <span />
         </button>
       </div>
-      <div ref={menuRef} id="mobile-navigation" className={`mobile-menu ${open ? "mobile-menu--open" : ""}`} aria-hidden={!open} aria-modal={open ? "true" : undefined} role={open ? "dialog" : undefined}>
+      <div ref={menuRef} id="mobile-navigation" className={`mobile-menu ${open ? "mobile-menu--open" : ""}`} aria-hidden={!open} aria-label={open ? "Site navigation" : undefined} aria-modal={open ? "true" : undefined} role={open ? "dialog" : undefined}>
         <nav aria-label="Mobile navigation" className="site-container mobile-menu__nav">
           {headerNavigation.map((item, index) => (
             <Link

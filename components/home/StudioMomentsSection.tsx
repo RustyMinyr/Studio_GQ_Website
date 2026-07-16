@@ -10,12 +10,12 @@ const studioMoments = [
     position: "object-[50%_35%]",
   },
   {
-    src: "/images/gallery/studio-content-hair-styling.jpg",
+    src: "/images/gallery/studio-content-hair-styling.webp",
     alt: "Hair styling preparation inside Studio GQ",
     position: "object-[50%_35%]",
   },
   {
-    src: "/images/gallery/studio-portrait-pair.jpg",
+    src: "/images/gallery/studio-portrait-pair.webp",
     alt: "Two models posing on the Studio GQ cyclorama",
     position: "object-[50%_35%]",
   },
@@ -30,9 +30,10 @@ export function StudioMomentsSection() {
   return (
     <section
       aria-labelledby="studio-moments-heading"
-      className="bg-[#050505] px-5 py-24 text-white sm:px-8 sm:py-28 lg:px-12 lg:py-32"
+      className="scroll-mt-24 bg-[#050505] py-24 text-white sm:py-28 lg:py-32"
+      id="studio-tour"
     >
-      <div className="mx-auto w-full max-w-[1400px]">
+      <div className="site-container">
         <Reveal className="grid gap-8 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
             <SectionLabel tone="dark">Inside Studio GQ</SectionLabel>
@@ -51,7 +52,7 @@ export function StudioMomentsSection() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid items-stretch gap-3 lg:aspect-[3/1] lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:grid-rows-[minmax(0,1fr)]">
+        <div className="mt-14 grid items-stretch gap-3 lg:aspect-[25/9] lg:grid-cols-[minmax(0,9fr)_minmax(0,16fr)] lg:grid-rows-[minmax(0,1fr)]">
           <div className="grid grid-cols-2 gap-1.5 lg:h-full lg:grid-rows-2">
             {studioMoments.map((moment, index) => (
               <Reveal key={moment.src} delay={index * 0.04} className="lg:h-full">
@@ -72,10 +73,10 @@ export function StudioMomentsSection() {
           <Reveal delay={0.12} className="h-full">
             <figure className="relative aspect-video h-full overflow-hidden bg-[#151515] lg:aspect-auto">
               <video
-                className="h-full w-full object-cover"
+                className="h-full w-full object-contain"
                 controls
                 playsInline
-                preload="metadata"
+                preload="none"
                 poster="/images/gallery/studio-gq-video-poster.jpg"
                 aria-label="Studio GQ overview video"
               >

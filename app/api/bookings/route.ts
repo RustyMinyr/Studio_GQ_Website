@@ -64,7 +64,7 @@ function isSameOrigin(request: NextRequest) {
   const requestOrigin = new URL(request.url).origin;
 
   if (fetchSite === "cross-site") return false;
-  if (!origin) return true;
+  if (!origin) return false;
 
   return origin === requestOrigin || origin === SITE_ORIGIN;
 }
@@ -186,4 +186,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
