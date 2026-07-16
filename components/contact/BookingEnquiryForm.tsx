@@ -105,7 +105,7 @@ export function BookingEnquiryForm() {
       : null;
 
   return (
-    <form className="space-y-7" noValidate onSubmit={handleSubmit}>
+    <form className="space-y-5" noValidate onSubmit={handleSubmit}>
       <div
         aria-live="polite"
         className="outline-none"
@@ -127,7 +127,7 @@ export function BookingEnquiryForm() {
         ) : null}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-5 md:grid-cols-2">
         <div>
           <label className="mb-2 block text-sm text-white" htmlFor="name">
             Name <span aria-hidden="true">*</span>
@@ -286,7 +286,7 @@ export function BookingEnquiryForm() {
         <textarea
           aria-describedby={fieldErrors.message ? "message-hint message-error" : "message-hint"}
           aria-invalid={Boolean(fieldErrors.message)}
-          className={`${fieldClassName} min-h-40 resize-y`}
+          className={`${fieldClassName} min-h-28 resize-y`}
           id="message"
           maxLength={2000}
           name="message"

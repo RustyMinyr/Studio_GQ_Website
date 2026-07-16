@@ -7,7 +7,7 @@ export function ContactSection() {
       className="scroll-mt-24 bg-[#0a0a0a] text-white"
       id="contact"
     >
-      <div className="mx-auto grid max-w-[1400px] gap-16 px-5 py-24 sm:px-8 sm:py-28 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:px-12 lg:py-36">
+      <div className="mx-auto grid max-w-[1400px] gap-12 px-5 py-20 sm:px-8 sm:py-24 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:px-12 lg:py-28">
         <div>
           <p className="text-xs tracking-[0.2em] text-[#a7a7a3]">BOOK THE STUDIO</p>
           <h2
@@ -21,7 +21,7 @@ export function ContactSection() {
             can support the production.
           </p>
 
-          <address className="mt-12 space-y-6 border-t border-[#565656] pt-8 text-base not-italic leading-7">
+          <address className="mt-9 space-y-5 border-t border-[#565656] pt-6 text-base not-italic leading-7">
             <div>
               <p className="text-xs tracking-[0.18em] text-[#a7a7a3]">VISIT</p>
               <p className="mt-2">

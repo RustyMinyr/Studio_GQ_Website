@@ -39,8 +39,13 @@ export function AboutStudio() {
             here to help you focus on what matters most{"\u2014"}your creative work.
           </p>
           <div className="mt-9">
-            <ArrowLink href="#equipment" variant="outline-light">
-              Explore equipment & support
+            <ArrowLink
+              href="https://www.instagram.com/filmhouse_studiogq/reels/"
+              rel="noopener noreferrer"
+              target="_blank"
+              variant="outline-light"
+            >
+              Watch tour video
             </ArrowLink>
           </div>
         </Reveal>

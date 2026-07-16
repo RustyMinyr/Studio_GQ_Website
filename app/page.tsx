@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { AboutStudio } from "@/components/home/AboutStudio";
 import { ContactSection } from "@/components/home/ContactSection";
+import { EasternCapeStrip } from "@/components/home/EasternCapeStrip";
 import { EquipmentSection } from "@/components/home/EquipmentSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { Hero } from "@/components/home/Hero";
@@ -29,7 +30,7 @@ export default function Home() {
       <StudioMomentsSection />
       <FaqSection />
       <ContactSection />
-      <div aria-hidden="true" className="h-16 bg-white sm:h-20 lg:h-24" />
+      <EasternCapeStrip />
     </main>
   );
 }
