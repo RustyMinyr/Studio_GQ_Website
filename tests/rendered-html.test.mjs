@@ -102,6 +102,7 @@ test("renders the complete accessible booking portal", async () => {
 
   const html = await response.text();
   assert.match(html, /<h1[\s>]/i);
+  assert.match(html, /page-hero page-hero--dark/i);
   assert.match(html, /<form[\s>]/i);
   assert.match(html, /<label[^>]*for="name"/i);
   assert.match(html, /<label[^>]*for="email"/i);

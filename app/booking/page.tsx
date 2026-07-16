@@ -19,7 +19,7 @@ export default function BookingPage() {
         eyebrow="Online booking"
         intro="Choose an available date and session, then share the details we need to prepare the studio around your production."
         title="Book Studio GQ."
-        tone="light"
+        tone="dark"
       />
 
       <section
