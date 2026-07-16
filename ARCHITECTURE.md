@@ -12,7 +12,8 @@ This file is the source of truth for every contributor. The supplied brief, logo
 
 ## Route model
 
-- `/`: single-page experience with hero, services, about, equipment, a photographic studio interlude, FAQ and booking sections.
+- `/`: single-page experience with hero, services, about, equipment, a photographic studio interlude, FAQ and a compact quick-enquiry section.
+- `/booking`: customer-facing booking portal with calendar, sessions, rates and full production enquiry details.
 - `/about`, `/spaces`, `/equipment`, `/faq`, and `/contact` redirect to matching homepage anchors. `/gallery` redirects to the homepage.
 - `/api/availability`: no-store availability endpoint that exposes occupied dates and slots without customer details.
 - `/api/bookings`: validated booking endpoint with honeypot, same-origin checks, rate limiting, and atomic Supabase slot reservation.
@@ -24,7 +25,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 - `components/shell/*`: site-wide `Header`, `MobileMenu`, and `Footer`.
 - `components/home/*`: all primary one-page sections.
 - `components/content/*`: shared interactive content such as the FAQ accordion.
-- `components/contact/*`: accessible calendar, session and rate selection, form UI, and submission state only.
+- `components/contact/*`: accessible quick-enquiry, calendar, session and rate selection, form UI, and submission state only.
 - `lib/*`: typed content, metadata helpers, image maps, and validation. No React components.
 
 ## Brand and design tokens

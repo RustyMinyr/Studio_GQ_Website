@@ -100,7 +100,7 @@ export function Header() {
             </Link>
           ))}
         </nav>
-        <Link href="/#contact" className="site-header__cta">
+        <Link href="/booking" className="site-header__cta">
           Book the studio <span aria-hidden="true">{"\u2192"}</span>
         </Link>
         <button
@@ -124,7 +124,7 @@ export function Header() {
               {item.label}
             </Link>
           ))}
-          <Link href="/#contact" className="mobile-menu__book" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>
+          <Link href="/booking" className="mobile-menu__book" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>
             Book the studio <span aria-hidden="true">{"\u2192"}</span>
           </Link>
         </nav>

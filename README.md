@@ -24,7 +24,7 @@ The App Router source is compatible with Vercel. The repository also retains the
 
 ## Supabase booking system
 
-The booking area loads occupied studio slots from `/api/availability` and submits reservations to `/api/bookings`. Customer details stay server-side. Supabase stores one booking record plus unique morning and afternoon slot rows, so morning, afternoon, and full-day reservations cannot overlap.
+The dedicated `/booking` portal loads occupied studio slots from `/api/availability` and submits reservations to `/api/bookings`. The homepage contact section remains a short email enquiry form for people who are not ready to choose a date. Customer details stay server-side. Supabase stores one booking record plus unique morning and afternoon slot rows, so morning, afternoon, and full-day reservations cannot overlap.
 
 To connect a Supabase project:
 
@@ -44,7 +44,8 @@ The supplied imagery does not include distinct greenscreen, podcast-room, or mee
 
 ## Main route
 
-- `/` — single-page Studio GQ experience with hero, services, about, equipment, studio imagery, FAQ and booking sections
+- `/` — single-page Studio GQ experience with hero, services, about, equipment, studio imagery, FAQ and a compact quick-enquiry section
+- `/booking` — customer booking portal with live availability, session selection, rates and production details
 - Legacy marketing URLs redirect to their matching homepage section; gallery redirects to the homepage
 - `/privacy` and `/terms` remain separate legal routes
 

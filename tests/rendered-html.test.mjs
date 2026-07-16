@@ -74,7 +74,7 @@ function bookingRequest(body, ip) {
   };
 }
 
-test("renders the complete accessible booking form", async () => {
+test("renders the compact homepage enquiry form and booking link", async () => {
   const response = await fetchSite("/", {
     headers: { accept: "text/html" },
   });
@@ -85,6 +85,23 @@ test("renders the complete accessible booking form", async () => {
   assert.match(html, /<main[\s>]/i);
   assert.match(html, /<h1[\s>]/i);
   assert.match(html, /<form[\s>]/i);
+  assert.match(html, /<label[^>]*for="quick-name"/i);
+  assert.match(html, /<label[^>]*for="quick-email"/i);
+  assert.match(html, /online booking/i);
+  assert.match(html, /href="\/booking"/i);
+  assert.match(html, /bookings@studiogq\.co\.za/i);
+  assert.match(html, /\+27 84 515 0956/i);
+});
+
+test("renders the complete accessible booking portal", async () => {
+  const response = await fetchSite("/booking", {
+    headers: { accept: "text/html" },
+  });
+  assert.equal(response.status, 200);
+
+  const html = await response.text();
+  assert.match(html, /<h1[\s>]/i);
+  assert.match(html, /<form[\s>]/i);
   assert.match(html, /<label[^>]*for="name"/i);
   assert.match(html, /<label[^>]*for="email"/i);
   assert.match(html, /facilities needed/i);
@@ -93,8 +110,6 @@ test("renders the complete accessible booking form", async () => {
   assert.match(html, /R2,500/i);
   assert.match(html, /R4,500/i);
   assert.match(html, /name="website"/i);
-  assert.match(html, /bookings@studiogq\.co\.za/i);
-  assert.match(html, /\+27 84 515 0956/i);
 });
 
 test("rejects invalid booking fields and past dates", async () => {
@@ -272,12 +287,13 @@ test("publishes canonical sitemap and robots directives", async () => {
   assert.doesNotMatch(sitemap, /https:\/\/www\.studiogq\.co\.za\/gallery/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/privacy/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/terms/);
+  assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/booking/);
   assert.match(robots, /Disallow: \/api\//i);
   assert.match(robots, /Sitemap: https:\/\/www\.studiogq\.co\.za\/sitemap\.xml/i);
 });
 
 test("renders every public route with one main landmark and live assets", async () => {
-  const routes = ["/", "/privacy", "/terms"];
+  const routes = ["/", "/booking", "/privacy", "/terms"];
 
   for (const route of routes) {
     const response = await fetchSite(route, { headers: { accept: "text/html" } });
