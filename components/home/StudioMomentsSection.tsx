@@ -15,12 +15,6 @@ const studioMoments = [
     position: "object-[50%_35%]",
   },
   {
-    src: "/images/gallery/studio-cyclorama-portrait.jpg",
-    alt: "Behind the scenes portrait setup on the Studio GQ cyclorama",
-    position: "object-center",
-    wide: true,
-  },
-  {
     src: "/images/gallery/studio-portrait-pair.jpg",
     alt: "Two models posing on the Studio GQ cyclorama",
     position: "object-[50%_35%]",
@@ -57,29 +51,39 @@ export function StudioMomentsSection() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
-          {studioMoments.map((moment, index) => (
-            <Reveal
-              key={moment.src}
-              delay={index * 0.05}
-              className={moment.wide ? "col-span-2" : undefined}
-            >
-              <figure
-                className={`relative overflow-hidden bg-[#151515] ${
-                  moment.wide ? "aspect-[8/5]" : "aspect-[4/5]"
-                }`}
+        <div className="mt-14 grid items-stretch gap-3 lg:aspect-[3/1] lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:grid-rows-[minmax(0,1fr)]">
+          <div className="grid grid-cols-2 gap-1.5 lg:h-full lg:grid-rows-2">
+            {studioMoments.map((moment, index) => (
+              <Reveal key={moment.src} delay={index * 0.04} className="lg:h-full">
+                <figure className="relative aspect-square overflow-hidden bg-[#151515] lg:aspect-auto lg:h-full">
+                  <Image
+                    unoptimized
+                    src={moment.src}
+                    alt={moment.alt}
+                    fill
+                    sizes="(max-width: 1023px) 50vw, 17vw"
+                    className={`object-cover ${moment.position}`}
+                  />
+                </figure>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal delay={0.12} className="h-full">
+            <figure className="relative aspect-video h-full overflow-hidden bg-[#151515] lg:aspect-auto">
+              <video
+                className="h-full w-full object-cover"
+                controls
+                playsInline
+                preload="metadata"
+                poster="/images/gallery/studio-gq-video-poster.jpg"
+                aria-label="Studio GQ overview video"
               >
-                <Image
-                  unoptimized
-                  src={moment.src}
-                  alt={moment.alt}
-                  fill
-                  sizes={moment.wide ? "(max-width: 1023px) 100vw, 33vw" : "(max-width: 639px) 50vw, 17vw"}
-                  className={`object-cover ${moment.position}`}
-                />
-              </figure>
-            </Reveal>
-          ))}
+                <source src="/videos/studio-gq-overview.mp4" type="video/mp4" />
+                Your browser does not support the video element.
+              </video>
+            </figure>
+          </Reveal>
         </div>
       </div>
     </section>

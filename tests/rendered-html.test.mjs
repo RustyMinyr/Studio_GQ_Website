@@ -94,7 +94,10 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.doesNotMatch(html, /hair-makeup\.webp/i);
   assert.match(html, /studio-content-hair-styling\.jpg/i);
   assert.match(html, /studio-portrait-pair\.jpg/i);
-  assert.match(html, /studio-cyclorama-portrait\.jpg/i);
+  assert.doesNotMatch(html, /studio-cyclorama-portrait\.jpg/i);
+  assert.match(html, /studio-gq-overview\.mp4/i);
+  assert.match(html, /studio-gq-video-poster\.jpg/i);
+  assert.match(html, /<video/i);
   assert.match(html, /href="\/booking"/i);
   assert.match(html, />Booking<\/a>/i);
   assert.match(html, /bookings@studiogq\.co\.za/i);
