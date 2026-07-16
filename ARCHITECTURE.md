@@ -7,14 +7,15 @@ This file is the source of truth for every contributor. The supplied brief, logo
 - Next.js App Router with TypeScript and React Server Components by default.
 - Tailwind CSS for layout and responsive composition, with design tokens and reset rules in `app/globals.css`.
 - Framer Motion only inside small client components that need reveal or overlay interaction.
-- Zod validation at the contact API boundary; no credentials or external form provider is required for this version.
+- Zod validation at the booking API boundary, with server-only Supabase REST access for availability and reservations.
 - Standard Next.js source remains Vercel-ready. The existing vinext/Sites adapter is retained for the Codex preview and private production deployment.
 
 ## Route model
 
 - `/`: single-page experience with hero, services, about, equipment, a photographic studio interlude, FAQ and booking sections.
 - `/about`, `/spaces`, `/equipment`, `/faq`, and `/contact` redirect to matching homepage anchors. `/gallery` redirects to the homepage.
-- `/api/contact`: validated JSON POST endpoint with honeypot and rate-limit-ready response headers.
+- `/api/availability`: no-store availability endpoint that exposes occupied dates and slots without customer details.
+- `/api/bookings`: validated booking endpoint with honeypot, same-origin checks, rate limiting, and atomic Supabase slot reservation.
 - `sitemap.ts` and `robots.ts`: canonical discovery for `https://www.studiogq.co.za`.
 
 ## Component boundaries
@@ -23,7 +24,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 - `components/shell/*`: site-wide `Header`, `MobileMenu`, and `Footer`.
 - `components/home/*`: all primary one-page sections.
 - `components/content/*`: shared interactive content such as the FAQ accordion.
-- `components/contact/*`: form UI and submission state only.
+- `components/contact/*`: accessible calendar, session and rate selection, form UI, and submission state only.
 - `lib/*`: typed content, metadata helpers, image maps, and validation. No React components.
 
 ## Brand and design tokens
@@ -39,7 +40,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 ## Accessibility contract
 
 - One page-level `h1`, sequential headings, semantic landmarks, and a visible skip link.
-- Keyboard-operable mobile menu, FAQ accordion, and form.
+- Keyboard-operable mobile menu, FAQ accordion, booking calendar, and form.
 - Escape closes overlays; focus remains visible and returns to the triggering control.
 - Minimum 44px touch targets, explicit labels, status announcements, and no reliance on colour alone.
 - Body copy and controls must meet WCAG AA contrast. Reduced motion is mandatory.
@@ -69,7 +70,7 @@ The supplied set does not include distinct greenscreen, podcast-room, or boardro
 
 - Homepage UI agent: `app/page.tsx` and `components/home/*` only.
 - One-page sections: `components/home/*`, with legacy route redirects under `app/*`.
-- Backend/SEO/QA: `app/api/contact`, `lib/contact-schema.ts`, `app/sitemap.ts`, `app/robots.ts`, and test files.
+- Backend/SEO/QA: `app/api/bookings`, `app/api/availability`, booking validation and Supabase helpers, migrations, SEO routes, and test files.
 - Lead agent: `app/layout.tsx`, `app/globals.css`, `components/ui/*`, `components/shell/*`, shared `lib/site-content.ts`, assets, dependencies, integration, documentation, build, browser QA, and deployment.
 
 Agents must not edit files outside their ownership. If a missing shared primitive blocks work, they should use the documented import contract and report it for lead integration instead of creating a duplicate.

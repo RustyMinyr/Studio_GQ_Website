@@ -22,9 +22,19 @@ npm run build
 
 The App Router source is compatible with Vercel. The repository also retains the vinext/Sites adapter used for the included private deployment workflow.
 
-## Contact form
+## Supabase booking system
 
-The booking form posts to `/api/contact`, where input is parsed with Zod, the honeypot is checked, and safe JSON responses are returned. The initial release does not transmit enquiries to a third party. To connect Resend, Formspree, Supabase, or another service, add the delivery call after validation in the route handler and store credentials in deployment environment variables—never in source control. See `.env.example` for suggested names.
+The booking area loads occupied studio slots from `/api/availability` and submits reservations to `/api/bookings`. Customer details stay server-side. Supabase stores one booking record plus unique morning and afternoon slot rows, so morning, afternoon, and full-day reservations cannot overlap.
+
+To connect a Supabase project:
+
+1. Run the SQL migration in `supabase/migrations/` through the Supabase SQL editor.
+2. Set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` as server-side environment variables using `.env.example` as the reference.
+3. Restart the local server or redeploy the site.
+
+The service-role key must never be exposed through a `NEXT_PUBLIC_` variable or committed to source control. If the database is not configured, the calendar reports that live availability is unavailable and the API refuses to create a booking rather than presenting unverified dates as open.
+
+Published studio rates are R2,500 for a four-hour morning or afternoon session and R4,500 for a ten-hour full day, excluding gear.
 
 ## Content and assets
 

@@ -3,12 +3,16 @@ import test from "node:test";
 
 let workerPromise;
 
-async function fetchSite(pathname, init) {
+async function getWorker() {
   workerPromise ??= import(
     new URL(`../dist/server/index.js?test=${process.pid}-${Date.now()}`, import.meta.url).href
   ).then(({ default: worker }) => worker);
 
-  const worker = await workerPromise;
+  return workerPromise;
+}
+
+async function fetchSite(pathname, init) {
+  const worker = await getWorker();
   return worker.fetch(
     new Request(`http://localhost${pathname}`, init),
     {
@@ -21,6 +25,53 @@ async function fetchSite(pathname, init) {
       passThroughOnException() {},
     },
   );
+}
+
+async function withSupabaseEnvironment(values, callback) {
+  const previousUrl = process.env.SUPABASE_URL;
+  const previousKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (values) {
+    process.env.SUPABASE_URL = values.url;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = values.key;
+  } else {
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+  }
+
+  try {
+    return await callback();
+  } finally {
+    if (previousUrl === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = previousUrl;
+    if (previousKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = previousKey;
+  }
+}
+
+const validBooking = {
+  date: "2099-02-20",
+  session: "morning",
+  name: "Amina Jacobs",
+  company: "North Star Films",
+  email: "amina@example.com",
+  phone: "+27 82 555 0199",
+  facilitiesNeeded: "studio_flashes_modifiers_stands",
+  crewSize: "12",
+  message: "An interview production requiring studio lighting and sound support.",
+  website: "",
+};
+
+function bookingRequest(body, ip) {
+  return {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "http://localhost",
+      "x-forwarded-for": ip,
+    },
+    body: JSON.stringify(body),
+  };
 }
 
 test("renders the complete accessible booking form", async () => {
@@ -36,69 +87,157 @@ test("renders the complete accessible booking form", async () => {
   assert.match(html, /<form[\s>]/i);
   assert.match(html, /<label[^>]*for="name"/i);
   assert.match(html, /<label[^>]*for="email"/i);
-  assert.match(html, /<label[^>]*for="projectType"/i);
-  assert.match(html, /<label[^>]*for="preferredDate"/i);
+  assert.match(html, /facilities needed/i);
+  assert.match(html, /half day/i);
+  assert.match(html, /full day/i);
+  assert.match(html, /R2,500/i);
+  assert.match(html, /R4,500/i);
   assert.match(html, /name="website"/i);
   assert.match(html, /bookings@studiogq\.co\.za/i);
   assert.match(html, /\+27 84 515 0956/i);
 });
 
-test("rejects invalid contact payloads with field errors", async () => {
-  const response = await fetchSite("/api/contact", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-forwarded-for": "192.0.2.10",
-    },
-    body: JSON.stringify({ email: "not-an-email" }),
-  });
+test("rejects invalid booking fields and past dates", async () => {
+  const invalidResponse = await fetchSite(
+    "/api/bookings",
+    bookingRequest({ email: "not-an-email" }, "192.0.2.10"),
+  );
+  assert.equal(invalidResponse.status, 400);
+  assert.equal(invalidResponse.headers.get("cache-control"), "no-store");
+  assert.equal(invalidResponse.headers.get("ratelimit-limit"), "5");
+  const invalid = await invalidResponse.json();
+  assert.ok(invalid.errors.date);
+  assert.ok(invalid.errors.session);
+  assert.ok(invalid.errors.name);
+  assert.ok(invalid.errors.email);
+  assert.ok(invalid.errors.facilitiesNeeded);
 
-  assert.equal(response.status, 400);
-  assert.equal(response.headers.get("cache-control"), "no-store");
-  assert.equal(response.headers.get("ratelimit-limit"), "5");
-  const payload = await response.json();
-  assert.match(payload.message, /highlighted fields/i);
-  assert.ok(payload.errors.name);
-  assert.ok(payload.errors.email);
-  assert.ok(payload.errors.projectType);
+  const pastResponse = await fetchSite(
+    "/api/bookings",
+    bookingRequest({ ...validBooking, date: "2000-01-01" }, "192.0.2.11"),
+  );
+  assert.equal(pastResponse.status, 400);
+  const past = await pastResponse.json();
+  assert.match(past.errors.date[0], /today or a future date/i);
 });
 
-test("accepts a valid booking enquiry", async () => {
-  const response = await fetchSite("/api/contact", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      origin: "http://localhost",
-      "x-forwarded-for": "192.0.2.11",
-    },
-    body: JSON.stringify({
-      name: "Amina Jacobs",
-      company: "North Star Films",
-      email: "amina@example.com",
-      phone: "+27 82 555 0199",
-      projectType: "Film production",
-      preferredDate: "2027-02-20",
-      shootDays: "2",
-      crewSize: "12",
-      message: "A two-day interview production requiring lighting and sound support.",
-      website: "",
-    }),
-  });
+test("returns graceful responses while Supabase is unconfigured", async () => {
+  await withSupabaseEnvironment(null, async () => {
+    const availabilityResponse = await fetchSite("/api/availability?month=2099-02");
+    assert.equal(availabilityResponse.status, 200);
+    assert.deepEqual(await availabilityResponse.json(), {
+      configured: false,
+      month: "2099-02",
+      occupied: [],
+    });
 
-  assert.equal(response.status, 202);
-  assert.equal(response.headers.get("ratelimit-remaining"), "4");
-  const payload = await response.json();
-  assert.match(payload.message, /ready to send/i);
+    const bookingResponse = await fetchSite(
+      "/api/bookings",
+      bookingRequest(validBooking, "192.0.2.12"),
+    );
+    assert.equal(bookingResponse.status, 503);
+    const booking = await bookingResponse.json();
+    assert.equal(booking.configured, false);
+    assert.match(booking.message, /not configured/i);
+  });
 });
 
-test("blocks cross-origin submissions", async () => {
-  const response = await fetchSite("/api/contact", {
+test("returns slot-only availability without exposing booking PII", async () => {
+  const nativeFetch = globalThis.fetch;
+  await withSupabaseEnvironment(
+    { url: "https://project.supabase.co", key: "test-service-role-key" },
+    async () => {
+      globalThis.fetch = async (input, init) => {
+        const url = String(input);
+        assert.match(url, /studio_booking_slots/);
+        assert.match(url, /select=booking_date%2Cslot/);
+        assert.equal(init.headers.Authorization, "Bearer test-service-role-key");
+        return Response.json([
+          { booking_date: "2099-02-12", slot: "morning" },
+          { booking_date: "2099-02-12", slot: "afternoon" },
+          { booking_date: "2099-02-18", slot: "morning" },
+        ]);
+      };
+
+      const response = await fetchSite("/api/availability?month=2099-02");
+      assert.equal(response.status, 200);
+      const raw = await response.text();
+      assert.doesNotMatch(raw, /name|email|phone|company/i);
+      assert.deepEqual(JSON.parse(raw), {
+        configured: true,
+        month: "2099-02",
+        occupied: [
+          { date: "2099-02-12", slots: ["morning", "afternoon"] },
+          { date: "2099-02-18", slots: ["morning"] },
+        ],
+      });
+    },
+  );
+  globalThis.fetch = nativeFetch;
+});
+
+test("creates a booking through the atomic Supabase RPC", async () => {
+  const nativeFetch = globalThis.fetch;
+  await withSupabaseEnvironment(
+    { url: "https://project.supabase.co", key: "test-service-role-key" },
+    async () => {
+      globalThis.fetch = async (input, init) => {
+        assert.equal(String(input), "https://project.supabase.co/rest/v1/rpc/create_studio_booking");
+        assert.equal(init.method, "POST");
+        const rpc = JSON.parse(init.body);
+        assert.equal(rpc.p_booking_date, validBooking.date);
+        assert.equal(rpc.p_session, "full_day");
+        assert.equal(rpc.p_email, validBooking.email);
+        return Response.json("123e4567-e89b-42d3-a456-426614174000");
+      };
+
+      const response = await fetchSite(
+        "/api/bookings",
+        bookingRequest({ ...validBooking, session: "full_day" }, "192.0.2.13"),
+      );
+      assert.equal(response.status, 201);
+      assert.deepEqual(await response.json(), {
+        message: "Your studio booking has been received.",
+        bookingId: "123e4567-e89b-42d3-a456-426614174000",
+        configured: true,
+      });
+    },
+  );
+  globalThis.fetch = nativeFetch;
+});
+
+test("maps a Supabase slot collision to a booking conflict", async () => {
+  const nativeFetch = globalThis.fetch;
+  await withSupabaseEnvironment(
+    { url: "https://project.supabase.co", key: "test-service-role-key" },
+    async () => {
+      globalThis.fetch = async () =>
+        Response.json(
+          { code: "23505", message: "duplicate key value violates unique constraint" },
+          { status: 409 },
+        );
+
+      const response = await fetchSite(
+        "/api/bookings",
+        bookingRequest(validBooking, "192.0.2.14"),
+      );
+      assert.equal(response.status, 409);
+      const payload = await response.json();
+      assert.equal(payload.code, "slot_unavailable");
+      assert.equal(payload.configured, true);
+    },
+  );
+  globalThis.fetch = nativeFetch;
+});
+
+test("blocks cross-origin booking submissions", async () => {
+  const response = await fetchSite("/api/bookings", {
     method: "POST",
     headers: {
       "content-type": "application/json",
       origin: "https://example.com",
       "sec-fetch-site": "cross-site",
-      "x-forwarded-for": "192.0.2.12",
+      "x-forwarded-for": "192.0.2.15",
     },
     body: "{}",
   });
@@ -106,19 +245,15 @@ test("blocks cross-origin submissions", async () => {
   assert.equal(response.status, 403);
 });
 
-test("silently accepts honeypot submissions without processing them", async () => {
-  const response = await fetchSite("/api/contact", {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-forwarded-for": "192.0.2.13",
-    },
-    body: JSON.stringify({ website: "https://spam.example" }),
-  });
+test("silently accepts booking honeypot submissions", async () => {
+  const response = await fetchSite(
+    "/api/bookings",
+    bookingRequest({ website: "https://spam.example" }, "192.0.2.16"),
+  );
 
   assert.equal(response.status, 202);
   const payload = await response.json();
-  assert.match(payload.message, /enquiry has been received/i);
+  assert.match(payload.message, /booking request has been received/i);
 });
 
 test("publishes canonical sitemap and robots directives", async () => {

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { contactSchema } from "@/lib/contact-schema";
+import { bookingSchema } from "@/lib/booking-schema";
+import {
+  createBooking,
+  getSupabaseConfig,
+  SupabaseBookingError,
+} from "@/lib/supabase-bookings";
 
 const SITE_ORIGIN = "https://www.studiogq.co.za";
 const MAX_BODY_BYTES = 20_000;
@@ -70,7 +75,7 @@ export async function POST(request: NextRequest) {
 
   if (!limit.allowed) {
     return NextResponse.json(
-      { message: "Too many enquiries. Please wait a minute and try again." },
+      { message: "Too many booking attempts. Please wait a minute and try again." },
       {
         status: 429,
         headers: { ...headers, "Retry-After": String(limit.resetSeconds) },
@@ -87,7 +92,7 @@ export async function POST(request: NextRequest) {
 
   if (!/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type") ?? "")) {
     return NextResponse.json(
-      { message: "Send the enquiry as JSON." },
+      { message: "Send the booking as JSON." },
       { status: 415, headers },
     );
   }
@@ -95,7 +100,7 @@ export async function POST(request: NextRequest) {
   const declaredLength = Number(request.headers.get("content-length") ?? 0);
   if (declaredLength > MAX_BODY_BYTES) {
     return NextResponse.json(
-      { message: "The enquiry is too large." },
+      { message: "The booking is too large." },
       { status: 413, headers },
     );
   }
@@ -105,14 +110,14 @@ export async function POST(request: NextRequest) {
     const body = await request.text();
     if (new TextEncoder().encode(body).byteLength > MAX_BODY_BYTES) {
       return NextResponse.json(
-        { message: "The enquiry is too large." },
+        { message: "The booking is too large." },
         { status: 413, headers },
       );
     }
     payload = JSON.parse(body);
   } catch {
     return NextResponse.json(
-      { message: "The enquiry could not be read." },
+      { message: "The booking could not be read." },
       { status: 400, headers },
     );
   }
@@ -123,12 +128,12 @@ export async function POST(request: NextRequest) {
       : undefined;
   if (typeof honeypot === "string" && honeypot.trim()) {
     return NextResponse.json(
-      { message: "Thanks. Your booking enquiry has been received." },
+      { message: "Thanks. Your booking request has been received." },
       { status: 202, headers },
     );
   }
 
-  const parsed = contactSchema.safeParse(payload);
+  const parsed = bookingSchema.safeParse(payload);
   if (!parsed.success) {
     return NextResponse.json(
       {
@@ -139,10 +144,46 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // The validated payload is ready for a provider such as Resend or Supabase.
-  // Delivery is intentionally omitted until production credentials are configured.
-  return NextResponse.json(
-    { message: "Your enquiry is ready to send to Studio GQ." },
-    { status: 202, headers },
-  );
+  const config = getSupabaseConfig();
+  if (!config) {
+    return NextResponse.json(
+      {
+        message:
+          "Online booking is not configured yet. Please contact Studio GQ directly.",
+        configured: false,
+      },
+      { status: 503, headers },
+    );
+  }
+
+  try {
+    const bookingId = await createBooking(config, parsed.data);
+    return NextResponse.json(
+      {
+        message: "Your studio booking has been received.",
+        bookingId,
+        configured: true,
+      },
+      { status: 201, headers },
+    );
+  } catch (error) {
+    if (error instanceof SupabaseBookingError && error.kind === "conflict") {
+      return NextResponse.json(
+        { message: error.message, code: "slot_unavailable", configured: true },
+        { status: 409, headers },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        message:
+          error instanceof SupabaseBookingError
+            ? error.message
+            : "The booking could not be saved. Please try again.",
+        configured: true,
+      },
+      { status: 502, headers },
+    );
+  }
 }
+
