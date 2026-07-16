@@ -10,14 +10,25 @@ const studioMoments = [
     position: "object-[50%_35%]",
   },
   {
-    src: "/images/gallery/hair-makeup.webp",
-    alt: "Talent preparing in the Studio GQ hair and makeup area",
-    position: "object-[52%_35%]",
+    src: "/images/gallery/studio-content-hair-styling.jpg",
+    alt: "Hair styling preparation inside Studio GQ",
+    position: "object-[50%_35%]",
+  },
+  {
+    src: "/images/gallery/studio-portrait-pair.jpg",
+    alt: "Two models posing on the Studio GQ cyclorama",
+    position: "object-[50%_35%]",
   },
   {
     src: "/images/gallery/portrait-seated.webp",
     alt: "Seated portrait photographed at Studio GQ",
     position: "object-[55%_30%]",
+  },
+  {
+    src: "/images/gallery/studio-cyclorama-portrait.jpg",
+    alt: "Behind the scenes portrait setup on the Studio GQ cyclorama",
+    position: "object-center",
+    wide: true,
   },
 ];
 
@@ -46,19 +57,24 @@ export function StudioMomentsSection() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+        <div className="mt-14 grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-6">
           {studioMoments.map((moment, index) => (
             <Reveal
               key={moment.src}
               delay={index * 0.05}
+              className={moment.wide ? "col-span-2" : undefined}
             >
-              <figure className="relative aspect-[4/5] overflow-hidden bg-[#151515]">
+              <figure
+                className={`relative overflow-hidden bg-[#151515] ${
+                  moment.wide ? "aspect-[8/5]" : "aspect-[4/5]"
+                }`}
+              >
                 <Image
                   unoptimized
                   src={moment.src}
                   alt={moment.alt}
                   fill
-                  sizes="(max-width: 639px) 50vw, 33vw"
+                  sizes={moment.wide ? "(max-width: 1023px) 100vw, 33vw" : "(max-width: 639px) 50vw, 17vw"}
                   className={`object-cover ${moment.position}`}
                 />
               </figure>
