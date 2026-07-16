@@ -26,7 +26,8 @@ export default function BookingPage() {
         className="bg-[#0a0a0a] text-white"
       >
         <div className="mx-auto grid max-w-[1400px] items-start gap-10 px-5 py-16 sm:px-8 sm:py-20 lg:grid-cols-[minmax(260px,0.52fr)_minmax(0,1.48fr)] lg:gap-12 lg:px-12 lg:py-24">
-          <aside className="lg:sticky lg:top-28 lg:self-start">
+          <aside className="relative self-stretch">
+            <div className="lg:sticky lg:top-[104px]">
             <p className="text-xs tracking-[0.2em] text-[#a7a7a3]">STUDIO HIRE</p>
             <h2
               className="mt-5 max-w-md text-3xl font-normal leading-[1.05] tracking-[-0.035em] sm:text-4xl"
@@ -75,6 +76,7 @@ export default function BookingPage() {
                 </a>
               </p>
             </address>
+            </div>
           </aside>
 
           <BookingEnquiryForm />
