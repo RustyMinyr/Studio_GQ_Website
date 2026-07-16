@@ -99,6 +99,7 @@ export function currentJohannesburgDate(now = new Date()) {
 
 export const bookingSchema = z
   .object({
+    requestId: z.string().uuid("The booking request could not be identified."),
     date: z
       .string()
       .trim()

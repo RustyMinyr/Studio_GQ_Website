@@ -8,6 +8,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 - Tailwind CSS for layout and responsive composition, with design tokens and reset rules in `app/globals.css`.
 - Framer Motion only inside small client components that need reveal or overlay interaction.
 - Zod validation at the booking API boundary, with server-only Supabase REST access for availability and reservations.
+- Browser-generated request UUIDs make booking retries idempotent; service-role-only confirm/cancel RPCs own booking status changes and slot release.
 - Standard Next.js source remains Vercel-ready. The existing vinext/Sites adapter is retained for the Codex preview and private production deployment.
 
 ## Route model

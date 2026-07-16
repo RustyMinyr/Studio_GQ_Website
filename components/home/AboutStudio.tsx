@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-import { ArrowLink } from "@/components/ui/ArrowLink";
+import { StudioTourDialog } from "@/components/home/StudioTourDialog";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
@@ -39,9 +39,7 @@ export function AboutStudio() {
             here to help you focus on what matters most{"\u2014"}your creative work.
           </p>
           <div className="mt-9">
-            <ArrowLink href="#studio-tour" variant="outline-light">
-              Watch tour video
-            </ArrowLink>
+            <StudioTourDialog />
           </div>
         </Reveal>
       </div>

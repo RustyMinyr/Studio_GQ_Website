@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 let workerPromise;
@@ -50,6 +51,7 @@ async function withSupabaseEnvironment(values, callback) {
 }
 
 const validBooking = {
+  requestId: "9a5364fd-2a92-4ee5-b7c3-275f0129ba47",
   date: "2099-02-20",
   session: "morning",
   name: "Amina Jacobs",
@@ -98,7 +100,11 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.match(html, /studio-gq-overview\.mp4/i);
   assert.match(html, /studio-gq-video-poster\.jpg/i);
   assert.match(html, /<video/i);
-  assert.match(html, /href="[^"]*#studio-tour"/i);
+  assert.match(html, /Watch tour video/i);
+  assert.match(html, /<dialog[^>]*aria-labelledby="studio-tour-dialog-title"/i);
+  assert.match(html, /aria-label="Close tour video"/i);
+  assert.match(html, /studio-gq-tour\.mp4/i);
+  assert.match(html, /studio-gq-tour-poster\.jpg/i);
   assert.match(html, /id="studio-tour"/i);
   assert.match(html, /href="\/privacy"/i);
   assert.match(html, /href="\/booking"/i);
@@ -228,6 +234,7 @@ test("creates a booking through the atomic Supabase RPC", async () => {
         assert.equal(String(input), "https://project.supabase.co/rest/v1/rpc/create_studio_booking");
         assert.equal(init.method, "POST");
         const rpc = JSON.parse(init.body);
+        assert.equal(rpc.p_request_id, validBooking.requestId);
         assert.equal(rpc.p_booking_date, validBooking.date);
         assert.equal(rpc.p_session, "full_day");
         assert.equal(rpc.p_email, validBooking.email);
@@ -272,6 +279,72 @@ test("maps a Supabase slot collision to a booking conflict", async () => {
     },
   );
   globalThis.fetch = nativeFetch;
+});
+
+test("maps request identifier reuse with changed details to a distinct conflict", async () => {
+  const nativeFetch = globalThis.fetch;
+  await withSupabaseEnvironment(
+    { url: "https://project.supabase.co", key: "test-service-role-key" },
+    async () => {
+      globalThis.fetch = async () =>
+        Response.json(
+          { code: "P0001", message: "request_id_payload_mismatch" },
+          { status: 400 },
+        );
+
+      const response = await fetchSite(
+        "/api/bookings",
+        bookingRequest(validBooking, "192.0.2.140"),
+      );
+      assert.equal(response.status, 409);
+      const payload = await response.json();
+      assert.equal(payload.code, "request_mismatch");
+      assert.match(payload.message, /no longer matches/i);
+    },
+  );
+  globalThis.fetch = nativeFetch;
+});
+
+test("rejects a malformed booking request identifier", async () => {
+  const response = await fetchSite(
+    "/api/bookings",
+    bookingRequest({ ...validBooking, requestId: "not-a-uuid" }, "192.0.2.141"),
+  );
+
+  assert.equal(response.status, 400);
+  const payload = await response.json();
+  assert.match(payload.errors.requestId[0], /could not be identified/i);
+});
+
+test("ships idempotent booking and slot-release database operations", async () => {
+  const migration = await readFile(
+    new URL(
+      "../supabase/migrations/202607160002_harden_booking_lifecycle.sql",
+      import.meta.url,
+    ),
+    "utf8",
+  );
+
+  assert.match(migration, /request_id uuid/i);
+  assert.match(migration, /pg_advisory_xact_lock/i);
+  assert.match(migration, /request_id_payload_mismatch/i);
+  assert.match(migration, /v_existing\.status = 'cancelled'/i);
+  assert.match(migration, /confirm_studio_booking/i);
+  assert.match(migration, /cancel_studio_booking/i);
+  assert.match(migration, /delete from public\.studio_booking_slots/i);
+  assert.match(migration, /revoke insert, update, delete on table public\.studio_bookings from service_role/i);
+});
+
+test("ships a secure UUID fallback and freezes the booking form in flight", async () => {
+  const form = await readFile(
+    new URL("../components/contact/BookingEnquiryForm.tsx", import.meta.url),
+    "utf8",
+  );
+
+  assert.match(form, /crypto\?\.randomUUID/);
+  assert.match(form, /crypto\?\.getRandomValues/);
+  assert.match(form, /disabled=\{isSubmitting\}/);
+  assert.match(form, /submission\.kind === "submitting"/);
 });
 
 test("blocks cross-origin booking submissions", async () => {

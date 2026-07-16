@@ -167,6 +167,13 @@ export async function POST(request: NextRequest) {
       { status: 201, headers },
     );
   } catch (error) {
+    if (error instanceof SupabaseBookingError && error.kind === "idempotency") {
+      return NextResponse.json(
+        { message: error.message, code: "request_mismatch", configured: true },
+        { status: 409, headers },
+      );
+    }
+
     if (error instanceof SupabaseBookingError && error.kind === "conflict") {
       return NextResponse.json(
         { message: error.message, code: "slot_unavailable", configured: true },

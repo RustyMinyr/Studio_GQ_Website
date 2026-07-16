@@ -44,6 +44,23 @@ function formatDate(date: string) {
   return dateFormatter.format(new Date(`${date}T12:00:00`));
 }
 
+function generateRequestId() {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+
+  if (typeof globalThis.crypto?.getRandomValues !== "function") {
+    throw new Error("Secure random identifiers are unavailable.");
+  }
+
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const value = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+
+  return `${value.slice(0, 8)}-${value.slice(8, 12)}-${value.slice(12, 16)}-${value.slice(16, 20)}-${value.slice(20)}`;
+}
+
 export function BookingEnquiryForm() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSession, setSelectedSession] = useState<BookingSession | "">("");
@@ -53,6 +70,7 @@ export function BookingEnquiryForm() {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const feedbackRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const requestIdRef = useRef<string | null>(null);
 
   const handleConfigurationChange = useCallback((configured: boolean | null) => {
     setCalendarConfigured(configured);
@@ -74,9 +92,30 @@ export function BookingEnquiryForm() {
 
   function resetForm() {
     formRef.current?.reset();
+    requestIdRef.current = null;
     setSelectedDate("");
     setSelectedSession("");
     setFieldErrors({});
+  }
+
+  function requestId() {
+    requestIdRef.current ??= generateRequestId();
+    return requestIdRef.current;
+  }
+
+  function resetRequestId() {
+    if (submission.kind === "submitting") return;
+    requestIdRef.current = null;
+  }
+
+  function handleDateChange(date: string) {
+    if (date !== selectedDate) resetRequestId();
+    setSelectedDate(date);
+  }
+
+  function handleSessionChange(session: BookingSession | "") {
+    if (session !== selectedSession) resetRequestId();
+    setSelectedSession(session);
   }
 
   function openPreparedEmail(payload: ReturnType<typeof bookingSchema.parse>) {
@@ -112,9 +151,23 @@ export function BookingEnquiryForm() {
     setSubmission({ kind: "submitting" });
     setFieldErrors({});
 
+    let currentRequestId: string;
+    try {
+      currentRequestId = requestId();
+    } catch {
+      setSubmission({
+        kind: "error",
+        message:
+          "This browser could not securely identify the booking request. Please refresh or email bookings@studiogq.co.za.",
+      });
+      focusFeedback();
+      return;
+    }
+
     const formData = new FormData(form);
     const rawPayload = {
       ...Object.fromEntries(formData.entries()),
+      requestId: currentRequestId,
       additionalItems: formData.getAll("additionalItems"),
     };
     const parsed = bookingSchema.safeParse(rawPayload);
@@ -172,7 +225,8 @@ export function BookingEnquiryForm() {
         code?: string;
       };
 
-      if (response.status === 409 || result.code === "slot_unavailable") {
+      if (result.code === "slot_unavailable") {
+        resetRequestId();
         setRefreshKey((key) => key + 1);
         setSelectedSession("");
         setSubmission({
@@ -180,6 +234,18 @@ export function BookingEnquiryForm() {
           message:
             result.message ??
             "That session has just been booked. The calendar has been refreshed; please choose another.",
+        });
+        focusFeedback();
+        return;
+      }
+
+      if (result.code === "request_mismatch") {
+        resetRequestId();
+        setSubmission({
+          kind: "error",
+          message:
+            result.message ??
+            "This booking attempt no longer matches the original request. Please try again.",
         });
         focusFeedback();
         return;
@@ -219,12 +285,21 @@ export function BookingEnquiryForm() {
       : null;
 
   return (
-    <form className="space-y-6" noValidate onSubmit={handleSubmit} ref={formRef}>
+    <form
+      aria-busy={isSubmitting}
+      className="space-y-6"
+      noValidate
+      onChange={resetRequestId}
+      onSubmit={handleSubmit}
+      ref={formRef}
+    >
+      <fieldset className="contents" disabled={isSubmitting}>
+      <legend className="sr-only">Studio booking enquiry</legend>
       <BookingCalendar
         dateError={fieldErrors.date}
         onConfigurationChange={handleConfigurationChange}
-        onDateChange={setSelectedDate}
-        onSessionChange={setSelectedSession}
+        onDateChange={handleDateChange}
+        onSessionChange={handleSessionChange}
         refreshKey={refreshKey}
         selectedDate={selectedDate}
         selectedSession={selectedSession}
@@ -408,6 +483,7 @@ export function BookingEnquiryForm() {
           </p>
         ) : null}
       </div>
+      </fieldset>
     </form>
   );
 }

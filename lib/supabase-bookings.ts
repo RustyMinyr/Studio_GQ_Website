@@ -30,7 +30,7 @@ export type OccupiedDate = {
 export class SupabaseBookingError extends Error {
   constructor(
     message: string,
-    readonly kind: "conflict" | "upstream",
+    readonly kind: "conflict" | "idempotency" | "upstream",
     readonly status?: number,
   ) {
     super(message);
@@ -81,6 +81,7 @@ export async function createBooking(
       method: "POST",
       headers: supabaseHeaders(config),
       body: JSON.stringify({
+        p_request_id: booking.requestId,
         p_booking_date: booking.date,
         p_session: booking.session,
         p_name: booking.name,
@@ -102,6 +103,16 @@ export async function createBooking(
 
   if (!response.ok) {
     const error = await readError(response);
+    if (
+      error.message?.includes("request_id_payload_mismatch") ||
+      error.message?.includes("request_id_cancelled")
+    ) {
+      throw new SupabaseBookingError(
+        "This booking attempt no longer matches the original request. Please refresh the page and try again.",
+        "idempotency",
+        response.status,
+      );
+    }
     if (response.status === 409 || error.code === "23505") {
       throw new SupabaseBookingError(
         "That session has just been booked. Please choose another date or time.",

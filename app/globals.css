@@ -49,6 +49,15 @@ button { cursor: pointer; }
 .arrow-link--light:hover, .arrow-link--outline-light:hover { background: var(--light-grey); color: var(--black); border-color: var(--light-grey); }
 .arrow-link--dark:hover, .arrow-link--outline-dark:hover { background: var(--charcoal); color: var(--white); }
 
+.studio-tour-dialog { width: min(62rem, calc(100% - 2rem)); max-width: none; max-height: calc(100dvh - 1rem); margin: auto; overflow: hidden; border: 1px solid rgba(255,255,255,.3); padding: 0; background: var(--black); color: var(--white); }
+.studio-tour-dialog::backdrop { background: rgba(0,0,0,.88); backdrop-filter: blur(6px); }
+.studio-tour-dialog__panel { display: flex; max-height: calc(100dvh - 1rem); flex-direction: column; background: var(--black); }
+.studio-tour-dialog__header { display: flex; min-height: 4.5rem; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem 1rem .75rem 1.5rem; }
+.studio-tour-dialog__header h2 { margin: 0; font-size: .75rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+.studio-tour-dialog__close { display: inline-grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 1px solid rgba(255,255,255,.38); background: transparent; color: var(--white); font-size: 1.75rem; line-height: 1; transition: background-color .25s ease, color .25s ease; }
+.studio-tour-dialog__close:hover { background: var(--white); color: var(--black); }
+.studio-tour-dialog__video { display: block; width: 100%; min-height: 0; max-height: calc(100dvh - 5.5rem); aspect-ratio: 16 / 9; background: #000; object-fit: contain; }
+
 .site-header { position: fixed; inset: 0 0 auto; z-index: 100; color: var(--white); transition: background-color .35s ease, border-color .35s ease, backdrop-filter .35s ease; }
 .site-header--solid { border-bottom: 1px solid rgba(255,255,255,.12); background: rgba(5,5,5,.9); backdrop-filter: blur(16px); }
 .site-header__inner { display: grid; min-height: 6.5rem; grid-template-columns: 9rem 1fr auto; align-items: center; gap: 2rem; }
@@ -115,6 +124,8 @@ button { cursor: pointer; }
   .site-footer__grid { grid-template-columns: 1fr 1fr; }
   .site-footer__brand, .site-footer__newsletter { grid-column: 1 / -1; }
   .site-footer__legal { flex-direction: column; }
+  .studio-tour-dialog { width: calc(100% - 1rem); }
+  .studio-tour-dialog__header { min-height: 3.75rem; padding: .5rem .5rem .5rem 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
