@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { navigation } from "@/lib/site-content";
 
+const headerNavigation = navigation.filter((item) => item.href !== "/booking");
+
 export function Header() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -92,7 +94,7 @@ export function Header() {
           />
         </Link>
         <nav aria-label="Primary navigation" className="site-header__nav">
-          {navigation.map((item) => (
+          {headerNavigation.map((item) => (
             <Link
               key={item.href}
               href={item.href}
@@ -120,7 +122,7 @@ export function Header() {
       </div>
       <div ref={menuRef} id="mobile-navigation" className={`mobile-menu ${open ? "mobile-menu--open" : ""}`} aria-hidden={!open} aria-modal={open ? "true" : undefined} role={open ? "dialog" : undefined}>
         <nav aria-label="Mobile navigation" className="site-container mobile-menu__nav">
-          {navigation.map((item, index) => (
+          {headerNavigation.map((item, index) => (
             <Link
               key={item.href}
               href={item.href}
