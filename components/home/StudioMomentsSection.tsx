@@ -15,6 +15,12 @@ const studioMoments = [
     position: "object-[50%_35%]",
   },
   {
+    src: "/images/gallery/studio-cyclorama-portrait.jpg",
+    alt: "Behind the scenes portrait setup on the Studio GQ cyclorama",
+    position: "object-center",
+    wide: true,
+  },
+  {
     src: "/images/gallery/studio-portrait-pair.jpg",
     alt: "Two models posing on the Studio GQ cyclorama",
     position: "object-[50%_35%]",
@@ -23,12 +29,6 @@ const studioMoments = [
     src: "/images/gallery/portrait-seated.webp",
     alt: "Seated portrait photographed at Studio GQ",
     position: "object-[55%_30%]",
-  },
-  {
-    src: "/images/gallery/studio-cyclorama-portrait.jpg",
-    alt: "Behind the scenes portrait setup on the Studio GQ cyclorama",
-    position: "object-center",
-    wide: true,
   },
 ];
 
