@@ -10,21 +10,9 @@ const studioMoments = [
     position: "object-[50%_35%]",
   },
   {
-    src: "/images/gallery/studio-production-wide.webp",
-    alt: "A production setup inside Studio GQ",
-    position: "object-center",
-    wide: true,
-  },
-  {
     src: "/images/gallery/hair-makeup.webp",
     alt: "Talent preparing in the Studio GQ hair and makeup area",
     position: "object-[52%_35%]",
-  },
-  {
-    src: "/images/gallery/behind-the-scenes.webp",
-    alt: "Behind the scenes during a Studio GQ production",
-    position: "object-center",
-    wide: true,
   },
   {
     src: "/images/gallery/hair-makeup-detail.webp",
@@ -63,24 +51,19 @@ export function StudioMomentsSection() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:grid-cols-8">
+        <div className="mt-14 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
           {studioMoments.map((moment, index) => (
             <Reveal
               key={moment.src}
-              delay={(index % 6) * 0.05}
-              className={moment.wide ? "sm:col-span-2" : undefined}
+              delay={index * 0.05}
             >
-              <figure
-                className={`relative overflow-hidden bg-[#151515] ${
-                  moment.wide ? "aspect-[4/5] sm:aspect-[8/5]" : "aspect-[4/5]"
-                }`}
-              >
+              <figure className="relative aspect-[4/5] overflow-hidden bg-[#151515]">
                 <Image
                   unoptimized
                   src={moment.src}
                   alt={moment.alt}
                   fill
-                  sizes="(max-width: 639px) 50vw, (max-width: 1023px) 33vw, 17vw"
+                  sizes="(max-width: 639px) 50vw, 25vw"
                   className={`object-cover ${moment.position}`}
                 />
               </figure>
