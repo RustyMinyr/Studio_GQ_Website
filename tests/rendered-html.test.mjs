@@ -89,6 +89,7 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.match(html, /<label[^>]*for="quick-email"/i);
   assert.match(html, /online booking/i);
   assert.match(html, /href="\/booking"/i);
+  assert.match(html, />Booking<\/a>/i);
   assert.match(html, /bookings@studiogq\.co\.za/i);
   assert.match(html, /\+27 84 515 0956/i);
 });

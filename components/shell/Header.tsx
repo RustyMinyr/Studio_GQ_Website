@@ -14,6 +14,14 @@ export function Header() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  function getAriaCurrent(href: string) {
+    if (pathname === href) return "page" as const;
+    if (pathname === "/" && activeHref === href) {
+      return href === "/" ? ("page" as const) : ("location" as const);
+    }
+    return undefined;
+  }
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
@@ -88,13 +96,7 @@ export function Header() {
             <Link
               key={item.href}
               href={item.href}
-              aria-current={
-                pathname === "/" && activeHref === item.href
-                  ? item.href === "/"
-                    ? "page"
-                    : "location"
-                  : undefined
-              }
+              aria-current={getAriaCurrent(item.href)}
             >
               {item.label}
             </Link>
@@ -119,7 +121,13 @@ export function Header() {
       <div ref={menuRef} id="mobile-navigation" className={`mobile-menu ${open ? "mobile-menu--open" : ""}`} aria-hidden={!open} aria-modal={open ? "true" : undefined} role={open ? "dialog" : undefined}>
         <nav aria-label="Mobile navigation" className="site-container mobile-menu__nav">
           {navigation.map((item, index) => (
-            <Link key={item.href} href={item.href} tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={getAriaCurrent(item.href)}
+              tabIndex={open ? 0 : -1}
+              onClick={() => setOpen(false)}
+            >
               <span>0{index + 1}</span>
               {item.label}
             </Link>
