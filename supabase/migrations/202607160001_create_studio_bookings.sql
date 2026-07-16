@@ -11,15 +11,7 @@ create table if not exists public.studio_bookings (
   company text check (company is null or char_length(company) <= 120),
   email text not null check (char_length(email) <= 254),
   phone text not null check (char_length(phone) between 7 and 30),
-  facilities_needed text not null check (
-    facilities_needed in (
-      'studio_only',
-      'studio_flashes_modifiers_stands',
-      'studio_lighting_or_greenscreen',
-      'studio_full_production'
-    )
-  ),
-  crew_size integer check (crew_size is null or crew_size between 1 and 500),
+  additional_items text[] not null default '{}',
   message text not null check (char_length(message) between 20 and 2000),
   price_zar integer not null check (price_zar in (2500, 4500)),
   status text not null default 'pending' check (status in ('pending', 'confirmed', 'cancelled')),
@@ -52,8 +44,7 @@ create or replace function public.create_studio_booking(
   p_company text,
   p_email text,
   p_phone text,
-  p_facilities_needed text,
-  p_crew_size integer,
+  p_additional_items text[],
   p_message text
 )
 returns uuid
@@ -73,13 +64,17 @@ begin
     raise exception 'Invalid session' using errcode = '22023';
   end if;
 
-  if p_facilities_needed not in (
-    'studio_only',
-    'studio_flashes_modifiers_stands',
-    'studio_lighting_or_greenscreen',
-    'studio_full_production'
-  ) then
-    raise exception 'Invalid facilities option' using errcode = '22023';
+  if not coalesce(p_additional_items, '{}') <@ array[
+    'studio_flashes',
+    'constant_lighting',
+    'green_screen',
+    'catering',
+    'audio_recording',
+    'live_streaming',
+    'videographer',
+    'photographer'
+  ]::text[] then
+    raise exception 'Invalid additional item' using errcode = '22023';
   end if;
 
   v_price_zar := case when p_session = 'full_day' then 4500 else 2500 end;
@@ -91,8 +86,7 @@ begin
     company,
     email,
     phone,
-    facilities_needed,
-    crew_size,
+    additional_items,
     message,
     price_zar
   )
@@ -103,8 +97,7 @@ begin
     nullif(trim(p_company), ''),
     p_email,
     p_phone,
-    p_facilities_needed,
-    p_crew_size,
+    coalesce(p_additional_items, '{}'),
     p_message,
     v_price_zar
   )
@@ -124,9 +117,9 @@ begin
 end;
 $$;
 
-revoke all on function public.create_studio_booking(date, text, text, text, text, text, text, integer, text)
+revoke all on function public.create_studio_booking(date, text, text, text, text, text, text[], text)
   from public, anon, authenticated;
-grant execute on function public.create_studio_booking(date, text, text, text, text, text, text, integer, text)
+grant execute on function public.create_studio_booking(date, text, text, text, text, text, text[], text)
   to service_role;
 
 grant select on table public.studio_booking_slots to service_role;

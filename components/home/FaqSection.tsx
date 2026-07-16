@@ -5,7 +5,7 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 const questions: FaqItem[] = [
   {
     question: "How do I book Studio GQ?",
-    answer: "Send a booking enquiry with your preferred date, project type, number of shoot days and estimated crew size. The team will confirm availability and the next booking steps.",
+    answer: "Use online booking to choose your preferred date and session, select any optional production extras and tell us about the shoot. The team will confirm availability, quote additional items separately and share the next booking steps.",
   },
   {
     question: "What is included with studio hire?",

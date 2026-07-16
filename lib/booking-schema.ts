@@ -1,16 +1,14 @@
 import { z } from "zod";
 
-export const facilitiesOptions = [
-  { value: "studio_only", label: "Studio only" },
-  {
-    value: "studio_flashes_modifiers_stands",
-    label: "Studio with flashes, modifiers and stands",
-  },
-  {
-    value: "studio_lighting_or_greenscreen",
-    label: "Studio with lighting and/or greenscreen",
-  },
-  { value: "studio_full_production", label: "Studio with crew · full production" },
+export const additionalItemOptions = [
+  { value: "studio_flashes", label: "Studio flashes" },
+  { value: "constant_lighting", label: "Constant lighting" },
+  { value: "green_screen", label: "Green screen" },
+  { value: "catering", label: "Catering" },
+  { value: "audio_recording", label: "Audio recording" },
+  { value: "live_streaming", label: "Live streaming" },
+  { value: "videographer", label: "Videographer" },
+  { value: "photographer", label: "Photographer" },
 ] as const;
 
 export const bookingSessions = [
@@ -37,9 +35,9 @@ export const bookingSessions = [
   },
 ] as const;
 
-const facilitiesValues = facilitiesOptions.map((option) => option.value) as [
-  (typeof facilitiesOptions)[number]["value"],
-  ...(typeof facilitiesOptions)[number]["value"][],
+const additionalItemValues = additionalItemOptions.map((option) => option.value) as [
+  (typeof additionalItemOptions)[number]["value"],
+  ...(typeof additionalItemOptions)[number]["value"][],
 ];
 const bookingSessionValues = bookingSessions.map((session) => session.value) as [
   (typeof bookingSessions)[number]["value"],
@@ -71,11 +69,6 @@ export const sessionDetails = {
     slots: readonly (typeof reservableSlots)[number][];
   }
 >;
-
-const optionalCrewSize = z.preprocess(
-  (value) => (value === "" || value === null ? undefined : value),
-  z.coerce.number().int().min(1).max(500).optional(),
-);
 
 const phoneNumber = z
   .string()
@@ -122,10 +115,7 @@ export const bookingSchema = z
     company: z.string().trim().max(120).optional(),
     email: z.string().trim().email("Enter a valid email address.").max(254),
     phone: phoneNumber,
-    facilitiesNeeded: z.enum(facilitiesValues, {
-      errorMap: () => ({ message: "Choose the facilities needed." }),
-    }),
-    crewSize: optionalCrewSize,
+    additionalItems: z.array(z.enum(additionalItemValues)).max(8).default([]),
     message: z
       .string()
       .trim()
@@ -142,4 +132,4 @@ export const monthSchema = z
 export type BookingFormData = z.infer<typeof bookingSchema>;
 export type BookingSession = (typeof bookingSessions)[number]["value"];
 export type ReservableSlot = (typeof reservableSlots)[number];
-export type FacilitiesNeeded = (typeof facilitiesOptions)[number]["value"];
+export type AdditionalItem = (typeof additionalItemOptions)[number]["value"];

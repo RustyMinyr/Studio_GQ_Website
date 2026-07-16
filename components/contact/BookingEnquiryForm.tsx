@@ -4,9 +4,9 @@ import { FormEvent, useCallback, useRef, useState } from "react";
 
 import { BookingCalendar } from "@/components/contact/BookingCalendar";
 import {
+  additionalItemOptions,
   bookingSchema,
   bookingSessions,
-  facilitiesOptions,
   sessionDetails,
   type BookingSession,
 } from "@/lib/booking-schema";
@@ -70,17 +70,17 @@ export function BookingEnquiryForm() {
 
   function openPreparedEmail(payload: ReturnType<typeof bookingSchema.parse>) {
     const session = bookingSessions.find((option) => option.value === payload.session);
-    const facilities = facilitiesOptions.find(
-      (option) => option.value === payload.facilitiesNeeded,
-    );
+    const selectedExtras = additionalItemOptions
+      .filter((option) => payload.additionalItems.includes(option.value))
+      .map((option) => option.label);
     const emailBody = [
       "Studio GQ booking enquiry",
       "",
       `Requested date: ${formatDate(payload.date)}`,
       `Session: ${sessionDetails[payload.session].label}`,
       `Rate: ${session?.priceLabel ?? ""} excluding gear`,
-      `Facilities needed: ${facilities?.label ?? payload.facilitiesNeeded}`,
-      `Estimated crew size: ${payload.crewSize ?? "Not specified"}`,
+      `Additional items: ${selectedExtras.length ? selectedExtras.join(", ") : "None"}`,
+      "Additional items are quoted separately.",
       "",
       `Name: ${payload.name}`,
       `Company: ${payload.company || "Not specified"}`,
@@ -101,7 +101,11 @@ export function BookingEnquiryForm() {
     setSubmission({ kind: "submitting" });
     setFieldErrors({});
 
-    const rawPayload = Object.fromEntries(new FormData(form).entries());
+    const formData = new FormData(form);
+    const rawPayload = {
+      ...Object.fromEntries(formData.entries()),
+      additionalItems: formData.getAll("additionalItems"),
+    };
     const parsed = bookingSchema.safeParse(rawPayload);
 
     if (!parsed.success) {
@@ -216,6 +220,32 @@ export function BookingEnquiryForm() {
       <input name="date" type="hidden" value={selectedDate} />
       <input name="session" type="hidden" value={selectedSession} />
 
+      <fieldset className="border border-[#565656] p-5 sm:p-6">
+        <legend className="px-2 text-xs tracking-[0.18em] text-[#a7a7a3]">
+          ADDITIONAL ITEMS
+        </legend>
+        <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+          {additionalItemOptions.map((option) => (
+            <label
+              className="flex min-h-11 cursor-pointer items-center gap-3 text-sm text-white"
+              key={option.value}
+            >
+              <input
+                className="h-5 w-5 shrink-0 accent-white"
+                name="additionalItems"
+                type="checkbox"
+                value={option.value}
+              />
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
+        <p className="mt-5 border-t border-[#565656] pt-4 text-sm leading-6 text-[#a7a7a3]">
+          Optional additions are not included in the studio rate and will be quoted
+          separately once we review your booking.
+        </p>
+      </fieldset>
+
       <div
         aria-live="polite"
         className="outline-none"
@@ -312,53 +342,6 @@ export function BookingEnquiryForm() {
           </div>
         </div>
       </fieldset>
-
-      <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_minmax(180px,0.6fr)]">
-        <div>
-          <label className="mb-2 block text-sm text-white" htmlFor="facilitiesNeeded">
-            Facilities needed <span aria-hidden="true">*</span>
-          </label>
-          <select
-            aria-describedby={
-              fieldErrors.facilitiesNeeded ? "facilities-needed-error" : undefined
-            }
-            aria-invalid={Boolean(fieldErrors.facilitiesNeeded)}
-            className={`${fieldClassName} [color-scheme:dark]`}
-            defaultValue=""
-            id="facilitiesNeeded"
-            name="facilitiesNeeded"
-            required
-          >
-            <option disabled value="">
-              Choose facilities
-            </option>
-            {facilitiesOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <FieldError errors={fieldErrors.facilitiesNeeded} id="facilities-needed-error" />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm text-white" htmlFor="crewSize">
-            Crew size <span className="text-[#a7a7a3]">(optional)</span>
-          </label>
-          <input
-            aria-describedby={fieldErrors.crewSize ? "crew-size-error" : undefined}
-            aria-invalid={Boolean(fieldErrors.crewSize)}
-            className={fieldClassName}
-            id="crewSize"
-            inputMode="numeric"
-            min="1"
-            name="crewSize"
-            step="1"
-            type="number"
-          />
-          <FieldError errors={fieldErrors.crewSize} id="crew-size-error" />
-        </div>
-      </div>
 
       <div>
         <label className="mb-2 block text-sm text-white" htmlFor="message">

@@ -56,8 +56,7 @@ const validBooking = {
   company: "North Star Films",
   email: "amina@example.com",
   phone: "+27 82 555 0199",
-  facilitiesNeeded: "studio_flashes_modifiers_stands",
-  crewSize: "12",
+  additionalItems: ["studio_flashes", "audio_recording"],
   message: "An interview production requiring studio lighting and sound support.",
   website: "",
 };
@@ -105,7 +104,18 @@ test("renders the complete accessible booking portal", async () => {
   assert.match(html, /<form[\s>]/i);
   assert.match(html, /<label[^>]*for="name"/i);
   assert.match(html, /<label[^>]*for="email"/i);
-  assert.match(html, /facilities needed/i);
+  assert.match(html, /additional items/i);
+  assert.match(html, /studio flashes/i);
+  assert.match(html, /constant lighting/i);
+  assert.match(html, /green screen/i);
+  assert.match(html, /catering/i);
+  assert.match(html, /audio recording/i);
+  assert.match(html, /live streaming/i);
+  assert.match(html, /videographer/i);
+  assert.match(html, /photographer/i);
+  assert.match(html, /quoted separately/i);
+  assert.doesNotMatch(html, /facilities needed/i);
+  assert.doesNotMatch(html, /crew size/i);
   assert.match(html, /half day/i);
   assert.match(html, /full day/i);
   assert.match(html, /R2,500/i);
@@ -126,7 +136,6 @@ test("rejects invalid booking fields and past dates", async () => {
   assert.ok(invalid.errors.session);
   assert.ok(invalid.errors.name);
   assert.ok(invalid.errors.email);
-  assert.ok(invalid.errors.facilitiesNeeded);
 
   const pastResponse = await fetchSite(
     "/api/bookings",
@@ -204,6 +213,7 @@ test("creates a booking through the atomic Supabase RPC", async () => {
         assert.equal(rpc.p_booking_date, validBooking.date);
         assert.equal(rpc.p_session, "full_day");
         assert.equal(rpc.p_email, validBooking.email);
+        assert.deepEqual(rpc.p_additional_items, validBooking.additionalItems);
         return Response.json("123e4567-e89b-42d3-a456-426614174000");
       };
 
