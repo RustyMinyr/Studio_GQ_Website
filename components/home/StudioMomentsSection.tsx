@@ -15,11 +15,6 @@ const studioMoments = [
     position: "object-[52%_35%]",
   },
   {
-    src: "/images/gallery/hair-makeup-detail.webp",
-    alt: "Hair and makeup preparation at Studio GQ",
-    position: "object-[50%_35%]",
-  },
-  {
     src: "/images/gallery/portrait-seated.webp",
     alt: "Seated portrait photographed at Studio GQ",
     position: "object-[55%_30%]",
@@ -51,7 +46,7 @@ export function StudioMomentsSection() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+        <div className="mt-14 grid grid-cols-2 gap-1.5 sm:grid-cols-3">
           {studioMoments.map((moment, index) => (
             <Reveal
               key={moment.src}
@@ -63,7 +58,7 @@ export function StudioMomentsSection() {
                   src={moment.src}
                   alt={moment.alt}
                   fill
-                  sizes="(max-width: 639px) 50vw, 25vw"
+                  sizes="(max-width: 639px) 50vw, 33vw"
                   className={`object-cover ${moment.position}`}
                 />
               </figure>
