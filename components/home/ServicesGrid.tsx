@@ -77,6 +77,10 @@ export function ServicesGrid() {
           >
             Everything you need. Nothing you don&apos;t.
           </h2>
+          <p className="mt-7 max-w-[34ch] text-base leading-7 text-[#565656]">
+            From adaptable studio spaces and specialist facilities to lighting, grip and
+            production support, everything is ready to help your shoot run smoothly.
+          </p>
         </Reveal>
 
         <div className="border-t border-[#a7a7a3]/50 lg:col-span-8">
