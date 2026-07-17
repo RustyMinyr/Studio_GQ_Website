@@ -44,6 +44,7 @@ export function Footer() {
       <div className="site-container site-footer__legal">
         <p>{"\u00A9"} 2026 Studio GQ. All rights reserved.</p>
         <div>
+          <Link href="/crew">Crew Portal</Link>
           <Link href="/privacy">Privacy Policy</Link>
           <Link href="/terms">Terms &amp; Conditions</Link>
         </div>

@@ -5,10 +5,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: "/api/",
+      disallow: ["/api/", "/crew/"],
     },
     sitemap: "https://www.studiogq.co.za/sitemap.xml",
     host: "https://www.studiogq.co.za",
   };
 }
-

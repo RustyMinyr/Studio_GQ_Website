@@ -82,6 +82,9 @@ export function Header() {
     };
   }, [open]);
 
+  // The crew portal has its own compact, authenticated navigation.
+  if (pathname.startsWith("/crew")) return null;
+
   return (
     <header className={`site-header ${scrolled || pathname !== "/" ? "site-header--solid" : ""}`}>
       <div className="site-container site-header__inner">

@@ -31,13 +31,24 @@ async function fetchSite(pathname, init) {
 async function withSupabaseEnvironment(values, callback) {
   const previousUrl = process.env.SUPABASE_URL;
   const previousKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const previousPublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
+  const previousAnonKey = process.env.SUPABASE_ANON_KEY;
+  const previousCrewEmail = process.env.CREW_PORTAL_EMAIL;
 
   if (values) {
     process.env.SUPABASE_URL = values.url;
     process.env.SUPABASE_SERVICE_ROLE_KEY = values.key;
+    if (values.publicKey) process.env.SUPABASE_PUBLISHABLE_KEY = values.publicKey;
+    else delete process.env.SUPABASE_PUBLISHABLE_KEY;
+    if (values.crewEmail) process.env.CREW_PORTAL_EMAIL = values.crewEmail;
+    else delete process.env.CREW_PORTAL_EMAIL;
+    delete process.env.SUPABASE_ANON_KEY;
   } else {
     delete process.env.SUPABASE_URL;
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.SUPABASE_PUBLISHABLE_KEY;
+    delete process.env.SUPABASE_ANON_KEY;
+    delete process.env.CREW_PORTAL_EMAIL;
   }
 
   try {
@@ -47,6 +58,12 @@ async function withSupabaseEnvironment(values, callback) {
     else process.env.SUPABASE_URL = previousUrl;
     if (previousKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     else process.env.SUPABASE_SERVICE_ROLE_KEY = previousKey;
+    if (previousPublishableKey === undefined) delete process.env.SUPABASE_PUBLISHABLE_KEY;
+    else process.env.SUPABASE_PUBLISHABLE_KEY = previousPublishableKey;
+    if (previousAnonKey === undefined) delete process.env.SUPABASE_ANON_KEY;
+    else process.env.SUPABASE_ANON_KEY = previousAnonKey;
+    if (previousCrewEmail === undefined) delete process.env.CREW_PORTAL_EMAIL;
+    else process.env.CREW_PORTAL_EMAIL = previousCrewEmail;
   }
 }
 
@@ -190,6 +207,17 @@ test("returns graceful responses while Supabase is unconfigured", async () => {
     const booking = await bookingResponse.json();
     assert.equal(booking.configured, false);
     assert.match(booking.message, /not configured/i);
+  });
+});
+
+test("keeps the crew portal private and shows a safe setup state until configured", async () => {
+  await withSupabaseEnvironment(null, async () => {
+    const response = await fetchSite("/crew", { headers: { accept: "text/html" } });
+    assert.equal(response.status, 200);
+    const html = await response.text();
+    assert.match(html, /Booking management is almost ready/i);
+    assert.match(html, /Connect Studio GQ/i);
+    assert.doesNotMatch(html, /SUPABASE_SERVICE_ROLE_KEY/i);
   });
 });
 
@@ -337,6 +365,29 @@ test("ships idempotent booking and slot-release database operations", async () =
   assert.match(migration, /revoke insert, update, delete on table public\.studio_bookings from service_role/i);
 });
 
+test("ships safe crew calendar holds, blocks and booking controls", async () => {
+  const [migration, auth, bookingActions, footer] = await Promise.all([
+    readFile(new URL("../supabase/migrations/202607170001_add_crew_booking_management.sql", import.meta.url), "utf8"),
+    readFile(new URL("../lib/crew-auth.ts", import.meta.url), "utf8"),
+    readFile(new URL("../components/crew/CrewBookingActions.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../components/shell/Footer.tsx", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(migration, /hold_expires_at/i);
+  assert.match(migration, /expire_studio_booking_holds/i);
+  assert.match(migration, /studio_calendar_blocks/i);
+  assert.match(migration, /num_nonnulls\(booking_id, block_id\) = 1/i);
+  assert.match(migration, /reschedule_studio_booking/i);
+  assert.match(migration, /create_studio_calendar_block/i);
+  assert.match(auth, /httpOnly: true/i);
+  assert.match(auth, /sameSite: "strict"/i);
+  assert.match(auth, /CREW_PORTAL_EMAIL/i);
+  assert.match(bookingActions, /Confirm booking/i);
+  assert.match(bookingActions, /Cancel booking/i);
+  assert.match(bookingActions, /Email client/i);
+  assert.match(footer, /href="\/crew"/i);
+});
+
 test("ships a secure UUID fallback and freezes the booking form in flight", async () => {
   const form = await readFile(
     new URL("../components/contact/BookingEnquiryForm.tsx", import.meta.url),
@@ -406,6 +457,7 @@ test("publishes canonical sitemap and robots directives", async () => {
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/terms/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/booking/);
   assert.match(robots, /Disallow: \/api\//i);
+  assert.match(robots, /Disallow: \/crew\//i);
   assert.match(robots, /Sitemap: https:\/\/www\.studiogq\.co\.za\/sitemap\.xml/i);
 });
 
