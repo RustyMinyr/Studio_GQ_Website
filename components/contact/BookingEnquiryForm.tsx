@@ -447,41 +447,62 @@ export function BookingEnquiryForm() {
           name="message"
           required
         />
-        <p className="mt-2 text-sm text-[#a7a7a3]" id="message-hint">
+        <p
+          className="mt-3 max-w-2xl text-sm leading-6 text-[#a7a7a3]"
+          id="message-hint"
+        >
           Include any equipment, audio, crew, access, or production support requirements.
         </p>
         <FieldError errors={fieldErrors.message} id="message-error" />
       </div>
 
-      <div
-        aria-hidden="true"
-        className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden"
-      >
+      <div aria-hidden="true" hidden>
         <label htmlFor="website">Website</label>
         <input autoComplete="off" id="website" name="website" tabIndex={-1} type="text" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-4">
-        <button
-          className="min-h-12 border border-white bg-white px-6 py-3 text-xs font-medium tracking-[0.18em] text-[#050505] transition-colors hover:bg-transparent hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-wait disabled:opacity-60"
-          disabled={isSubmitting}
-          type="submit"
-        >
-          {isSubmitting ? "SENDING…" : "CONTINUE BOOKING ENQUIRY →"}
-        </button>
-        <p className="max-w-md text-xs leading-5 text-[#a7a7a3]">
-          By sending this enquiry, you agree that Studio GQ may use the details
-          provided to respond and manage the requested booking. Read our{" "}
-          <Link className="underline underline-offset-4" href="/privacy">
-            privacy policy
-          </Link>
-          .
-        </p>
-        {calendarConfigured === false ? (
-          <p className="max-w-sm text-xs leading-5 text-[#a7a7a3]">
-            Preview mode opens a prepared email for you to review and send.
-          </p>
-        ) : null}
+      <div
+        className="border-t border-[#565656] pt-6 sm:pt-8"
+        data-testid="booking-submit-panel"
+      >
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,17rem)_minmax(0,1fr)] lg:items-start lg:gap-8">
+          <button
+            className="flex min-h-14 w-full items-center justify-between gap-5 border border-white bg-white px-6 py-4 text-left text-xs font-medium tracking-[0.18em] text-[#050505] transition-colors hover:bg-transparent hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white disabled:cursor-wait disabled:opacity-60"
+            disabled={isSubmitting}
+            type="submit"
+          >
+            <span className="whitespace-nowrap">
+              {isSubmitting ? "SUBMITTING…" : "SUBMIT BOOKING"}
+            </span>
+            <span aria-hidden="true">→</span>
+          </button>
+          <div className="grid gap-5 sm:grid-cols-2 sm:gap-6">
+            <div>
+              <p className="text-[10px] font-medium tracking-[0.18em] text-white">
+                YOUR INFORMATION
+              </p>
+              <p className="mt-2 max-w-md text-xs leading-5 text-[#a7a7a3]">
+                By submitting, you agree that Studio GQ may use the details provided
+                to respond to and manage your booking request. Read our{" "}
+                <Link className="text-white underline underline-offset-4" href="/privacy">
+                  privacy policy
+                </Link>
+                .
+              </p>
+            </div>
+            {calendarConfigured === false ? (
+              <div className="border-t border-[#363636] pt-5 sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
+                <p className="text-[10px] font-medium tracking-[0.18em] text-white">
+                  PREVIEW MODE
+                </p>
+                <p className="mt-2 max-w-sm text-xs leading-5 text-[#a7a7a3]">
+                  Your booking details will open in a prepared email for you to review
+                  and send.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
       </div>
       </fieldset>
     </form>

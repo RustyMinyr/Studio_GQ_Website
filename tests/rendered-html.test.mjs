@@ -145,6 +145,8 @@ test("renders the complete accessible booking portal", async () => {
   assert.match(html, /Production, under one roof/i);
   assert.match(html, /Production support/i);
   assert.match(html, /name="website"/i);
+  assert.match(html, /SUBMIT BOOKING/i);
+  assert.doesNotMatch(html, /CONTINUE BOOKING ENQUIRY/i);
 });
 
 test("rejects invalid booking fields and past dates", async () => {
