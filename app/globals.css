@@ -58,8 +58,8 @@ button { cursor: pointer; }
 .studio-tour-dialog__close:hover { background: var(--white); color: var(--black); }
 .studio-tour-dialog__video { display: block; width: 100%; min-height: 0; max-height: calc(100dvh - 5.5rem); aspect-ratio: 16 / 9; background: #000; object-fit: contain; }
 
-.site-header { position: fixed; inset: 0 0 auto; z-index: 100; color: var(--white); transition: background-color .35s ease, border-color .35s ease, backdrop-filter .35s ease; }
-.site-header--solid { border-bottom: 1px solid rgba(255,255,255,.12); background: rgba(5,5,5,.9); backdrop-filter: blur(16px); }
+.site-header { position: fixed; inset: 0 0 auto; z-index: 100; border-bottom: 1px solid transparent; background: rgba(5,5,5,0); color: var(--white); -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); transition: background-color .35s ease, border-color .35s ease, -webkit-backdrop-filter .35s ease, backdrop-filter .35s ease; }
+.site-header--solid { border-bottom-color: rgba(255,255,255,.12); background: rgba(5,5,5,.9); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 .site-header__inner { display: grid; min-height: 6.5rem; grid-template-columns: 9rem 1fr auto; align-items: center; gap: 2rem; }
 .site-header__logo { display: block; width: clamp(5.5rem, 6vw, 6.5rem); }
 .site-header__logo img { display: block; width: 100%; height: auto; }
