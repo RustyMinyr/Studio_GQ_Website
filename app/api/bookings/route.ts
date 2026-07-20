@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { bookingSchema } from "@/lib/booking-schema";
-import { notifyStudioOfBooking } from "@/lib/booking-email";
+import { notifyClientOfPendingBooking, notifyStudioOfBooking } from "@/lib/booking-email";
 import {
   createBooking,
   TursoBookingError,
@@ -159,12 +159,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const bookingId = await createBooking(config, parsed.data);
-    const notification = await notifyStudioOfBooking(parsed.data, bookingId);
+    const [notification, pendingEmail] = await Promise.all([
+      notifyStudioOfBooking(parsed.data, bookingId),
+      notifyClientOfPendingBooking(parsed.data, bookingId),
+    ]);
     return NextResponse.json(
       {
         message: "Your studio booking has been received. The Studio GQ team will confirm availability shortly.",
         bookingGroupId: bookingId,
         notification: notification.reason,
+        pendingEmail: pendingEmail.reason,
         configured: true,
       },
       { status: 201, headers },
