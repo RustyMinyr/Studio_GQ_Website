@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-import { securityHeaders } from "./lib/security-headers";
+import { createSecurityHeaders } from "./lib/security-headers";
 
 const nextConfig: NextConfig = {
   images: {
@@ -11,10 +11,11 @@ const nextConfig: NextConfig = {
   },
   poweredByHeader: false,
   async headers() {
+    const headers = createSecurityHeaders(process.env.NODE_ENV === "development");
     return [
       {
         source: "/:path*",
-        headers: [...securityHeaders],
+        headers: [...headers],
       },
     ];
   },

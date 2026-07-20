@@ -23,3 +23,129 @@ React will never use eval() in production mode
  GET / 200 in 92ms (next.js: 21ms, application-code: 72ms)
 [browser] Image with src "/logos/studio-gq-white.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
 Read more: https://nextjs.org/docs/app/api-reference/components/image#loading (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_126uayc._.js:2477:13)
+ GET /crew/login 200 in 90ms (next.js: 19ms, application-code: 71ms)
+ GET /crew/login 200 in 36ms (next.js: 3ms, application-code: 33ms)
+[browser] eval() is not supported in this environment. If this page was served with a `Content-Security-Policy` header, make sure that `unsafe-eval` is included. React requires eval() in development mode for various debugging features like reconstructing callstacks from a different environment.
+React will never use eval() in production mode 
+    at checkEvalAvailabilityOnceDev (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:22:25)
+    at createResponseFromOptions (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2627:9)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2822:24)
+    at module evaluation (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15094:29)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15224:47)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:194:9)
+    at loadScriptsInSequence (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:158:16)
+    at appBootstrap (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:187:5)
+    at module evaluation (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15223:32) (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:22:25)
+ POST /api/crew/session 401 in 145ms (next.js: 134ms, application-code: 11ms)
+ POST /api/crew/session 200 in 7ms (next.js: 1558µs, application-code: 6ms)
+⨯ Error [LibsqlError]: SQLite error: no such table: studio_bookings
+    at async releaseExpiredHolds (lib\crew-bookings.ts:195:5)
+    at async getCrewDashboard (lib\crew-bookings.ts:208:3)
+    at async CrewPortalPage (app\crew\page.tsx:20:21)
+  193 |   try {
+  194 |     const now = nowIso();
+> 195 |     await client.batch([
+      |     ^
+  196 |       { sql: "update studio_bookings set status = 'expired', hold_expires_at = null, upda...
+  197 |       { sql: "delete from studio_booking_slots where booking_id in (select id from studio...
+  198 |     ], "write"); {
+  code: 'SQLITE_UNKNOWN',
+  extendedCode: undefined,
+  rawCode: undefined,
+  digest: '3313172049',
+  [cause]: Error [DatabaseError]: SQLite error: no such table: studio_bookings
+      at async releaseExpiredHolds (lib\crew-bookings.ts:195:5)
+      at async getCrewDashboard (lib\crew-bookings.ts:208:3)
+      at async CrewPortalPage (app\crew\page.tsx:20:21)
+    193 |   try {
+    194 |     const now = nowIso();
+  > 195 |     await client.batch([
+        |     ^
+    196 |       { sql: "update studio_bookings set status = 'expired', hold_expires_at = null, upda...
+    197 |       { sql: "delete from studio_booking_slots where booking_id in (select id from studio...
+    198 |     ], "write"); {
+    code: 'SQLITE_UNKNOWN',
+    rawCode: undefined,
+    cause: undefined
+  }
+}
+ GET /crew 500 in 1650ms (next.js: 23ms, application-code: 1627ms)
+[browser] eval() is not supported in this environment. If this page was served with a `Content-Security-Policy` header, make sure that `unsafe-eval` is included. React requires eval() in development mode for various debugging features like reconstructing callstacks from a different environment.
+React will never use eval() in production mode 
+    at checkEvalAvailabilityOnceDev (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:22:25)
+    at createResponseFromOptions (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2627:9)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2822:24)
+    at module evaluation (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15094:29)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15224:47)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:194:9)
+    at loadScriptsInSequence (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:158:16)
+    at appBootstrap (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:187:5)
+    at module evaluation (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15223:32) (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:22:25)
+[browser] Uncaught LibsqlError: SQLite error: no such table: studio_bookings
+    at releaseExpiredHolds (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:1940:24)
+    at getCrewDashboard (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:1940:24)
+    at CrewPortalPage (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:1940:24)
+    at resolveErrorDev (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:1919:105)
+    at processFullStringRow (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2434:29)
+    at processFullBinaryRow (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2393:9)
+    at processBinaryChunk (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2502:221)
+    at progress (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2689:13)
+⚠ Found a change in next.config.ts. Restarting the server to apply the changes...
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3037
+- Network:       http://192.168.20.25:3037
+- Environments: .env.local
+✓ Ready in 223ms
+
+ GET / 200 in 121ms (next.js: 14ms, application-code: 108ms)
+⨯ Error [LibsqlError]: SQLite error: no such table: studio_bookings
+    at async releaseExpiredHolds (lib\crew-bookings.ts:195:5)
+    at async getCrewDashboard (lib\crew-bookings.ts:208:3)
+    at async CrewPortalPage (app\crew\page.tsx:20:21)
+  193 |   try {
+  194 |     const now = nowIso();
+> 195 |     await client.batch([
+      |     ^
+  196 |       { sql: "update studio_bookings set status = 'expired', hold_expires_at = null, upda...
+  197 |       { sql: "delete from studio_booking_slots where booking_id in (select id from studio...
+  198 |     ], "write"); {
+  code: 'SQLITE_UNKNOWN',
+  extendedCode: undefined,
+  rawCode: undefined,
+  digest: '3313172049',
+  [cause]: Error [DatabaseError]: SQLite error: no such table: studio_bookings
+      at async releaseExpiredHolds (lib\crew-bookings.ts:195:5)
+      at async getCrewDashboard (lib\crew-bookings.ts:208:3)
+      at async CrewPortalPage (app\crew\page.tsx:20:21)
+    193 |   try {
+    194 |     const now = nowIso();
+  > 195 |     await client.batch([
+        |     ^
+    196 |       { sql: "update studio_bookings set status = 'expired', hold_expires_at = null, upda...
+    197 |       { sql: "delete from studio_booking_slots where booking_id in (select id from studio...
+    198 |     ], "write"); {
+    code: 'SQLITE_UNKNOWN',
+    rawCode: undefined,
+    cause: undefined
+  }
+}
+ GET /crew 500 in 1460ms (next.js: 86ms, application-code: 1375ms)
+[browser] Uncaught LibsqlError: SQLite error: no such table: studio_bookings
+    at releaseExpiredHolds (lib\crew-bookings.ts:195:5)
+    at getCrewDashboard (lib\crew-bookings.ts:208:3)
+    at CrewPortalPage (app\crew\page.tsx:20:21)
+    at resolveErrorDev (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:1919:105)
+    at processFullStringRow (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2434:29)
+    at processFullBinaryRow (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2393:9)
+    at processBinaryChunk (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2502:221)
+    at progress (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2689:13)
+  193 |   try {
+  194 |     const now = nowIso();
+> 195 |     await client.batch([
+      |     ^
+  196 |       { sql: "update studio_bookings set status = 'expired', hold_expires_at = null, upda...
+  197 |       { sql: "delete from studio_booking_slots where booking_id in (select id from studio...
+  198 |     ], "write");
+  Reload env: .env.local
+ GET / 200 in 39ms (next.js: 5ms, application-code: 33ms)
+ GET /crew 200 in 3.2s (next.js: 26ms, application-code: 3.2s)

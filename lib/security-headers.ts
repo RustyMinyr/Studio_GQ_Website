@@ -1,4 +1,5 @@
-const contentSecurityPolicy = [
+function contentSecurityPolicy(allowDevelopmentEval = false) {
+  return [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
@@ -8,13 +9,15 @@ const contentSecurityPolicy = [
   "media-src 'self' blob:",
   "font-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${allowDevelopmentEval ? " 'unsafe-eval'" : ""}`,
   "connect-src 'self'",
   "upgrade-insecure-requests",
-].join("; ");
+  ].join("; ");
+}
 
-export const securityHeaders = [
-  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+export function createSecurityHeaders(allowDevelopmentEval = false) {
+  return [
+  { key: "Content-Security-Policy", value: contentSecurityPolicy(allowDevelopmentEval) },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -23,4 +26,8 @@ export const securityHeaders = [
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains; preload",
   },
-] as const;
+  ] as const;
+}
+
+/** Production and worker headers. Development uses an explicitly looser variant. */
+export const securityHeaders = createSecurityHeaders();
