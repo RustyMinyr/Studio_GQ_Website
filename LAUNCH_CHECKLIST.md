@@ -8,11 +8,18 @@ The website is designed to remain in safe preview mode until the live booking da
 2. Apply the migrations in order:
    - `202607160001_create_studio_bookings.sql`
    - `202607160002_harden_booking_lifecycle.sql`
-3. Add these server-only runtime values to the deployed site:
+   - `202607170001_add_crew_booking_management.sql`
+3. Add these public runtime values to the deployed site:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+4. Add these server-only runtime values to the deployed site:
    - `SUPABASE_URL`
    - `SUPABASE_SERVICE_ROLE_KEY`
-4. Confirm that `/api/availability` reports `configured: true`.
-5. Submit one test booking, verify the booking and both reserved slots in Supabase, then cancel the test booking and verify that its slots are released.
+   - `SUPABASE_PUBLISHABLE_KEY`
+   - `CREW_PORTAL_EMAIL`
+5. Create the shared crew identity in Supabase Auth using the same email as `CREW_PORTAL_EMAIL`.
+6. Confirm that `/api/availability` reports `configured: true`.
+7. Submit one test booking, verify the booking and both reserved slots in Supabase, then cancel the test booking and verify that its slots are released.
 
 Never expose the service-role key in a `NEXT_PUBLIC_` variable, browser code, screenshots, or support messages.
 
@@ -20,8 +27,7 @@ Never expose the service-role key in a `NEXT_PUBLIC_` variable, browser code, sc
 
 - New website requests are stored as `pending` and reserve the selected slot.
 - Repeated delivery of the same browser request is idempotent and returns the original booking instead of creating a duplicate.
-- Use `confirm_studio_booking(booking_id)` to mark an accepted request as confirmed.
-- Use `cancel_studio_booking(booking_id)` to cancel a request and release its reserved slots transactionally.
+- Use the crew portal at `/crew` to review, confirm, reschedule or cancel requests, manage internal calendar blocks, and prepare client emails.
 - Decide how quickly pending requests must be reviewed and when an unanswered hold should be cancelled.
 - Connect a studio notification and customer acknowledgement workflow before relying on the database for unattended enquiries.
 

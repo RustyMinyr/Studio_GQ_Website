@@ -51,9 +51,13 @@ function isSafePortalPath(value: string) {
  * This function is intentionally lazy so builds work without production env vars.
  */
 export function getCrewAuthState(): CrewAuthState {
-  const url = configuredValue(process.env.SUPABASE_URL)?.replace(/\/$/, "");
+  const url = configuredValue(
+    process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
+  )?.replace(/\/$/, "");
   const publicKey = configuredValue(
-    process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_ANON_KEY,
+    process.env.SUPABASE_PUBLISHABLE_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+      process.env.SUPABASE_ANON_KEY,
   );
   const serviceRoleKey = configuredValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
   const rawCrewEmail = configuredValue(process.env.CREW_PORTAL_EMAIL);
@@ -192,4 +196,3 @@ export function crewSessionCookie(accessToken: string, maxAge = CREW_SESSION_MAX
     maxAge: Math.max(60, Math.min(CREW_SESSION_MAX_AGE_SECONDS, maxAge)),
   };
 }
-
