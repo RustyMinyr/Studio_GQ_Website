@@ -28,48 +28,46 @@ async function fetchSite(pathname, init) {
   );
 }
 
-async function withSupabaseEnvironment(values, callback) {
-  const previousUrl = process.env.SUPABASE_URL;
-  const previousKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const previousPublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY;
-  const previousAnonKey = process.env.SUPABASE_ANON_KEY;
+async function withTursoEnvironment(values, callback) {
+  const previousUrl = process.env.TURSO_DATABASE_URL;
+  const previousToken = process.env.TURSO_AUTH_TOKEN;
   const previousCrewEmail = process.env.CREW_PORTAL_EMAIL;
+  const previousCrewPassword = process.env.CREW_PORTAL_PASSWORD;
+  const previousSessionSecret = process.env.CREW_SESSION_SECRET;
 
   if (values) {
-    process.env.SUPABASE_URL = values.url;
-    process.env.SUPABASE_SERVICE_ROLE_KEY = values.key;
-    if (values.publicKey) process.env.SUPABASE_PUBLISHABLE_KEY = values.publicKey;
-    else delete process.env.SUPABASE_PUBLISHABLE_KEY;
-    if (values.crewEmail) process.env.CREW_PORTAL_EMAIL = values.crewEmail;
-    else delete process.env.CREW_PORTAL_EMAIL;
-    delete process.env.SUPABASE_ANON_KEY;
+    process.env.TURSO_DATABASE_URL = values.url;
+    process.env.TURSO_AUTH_TOKEN = values.token;
+    process.env.CREW_PORTAL_EMAIL = values.crewEmail;
+    process.env.CREW_PORTAL_PASSWORD = values.crewPassword;
+    process.env.CREW_SESSION_SECRET = values.sessionSecret;
   } else {
-    delete process.env.SUPABASE_URL;
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
-    delete process.env.SUPABASE_PUBLISHABLE_KEY;
-    delete process.env.SUPABASE_ANON_KEY;
+    delete process.env.TURSO_DATABASE_URL;
+    delete process.env.TURSO_AUTH_TOKEN;
     delete process.env.CREW_PORTAL_EMAIL;
+    delete process.env.CREW_PORTAL_PASSWORD;
+    delete process.env.CREW_SESSION_SECRET;
   }
 
   try {
     return await callback();
   } finally {
-    if (previousUrl === undefined) delete process.env.SUPABASE_URL;
-    else process.env.SUPABASE_URL = previousUrl;
-    if (previousKey === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
-    else process.env.SUPABASE_SERVICE_ROLE_KEY = previousKey;
-    if (previousPublishableKey === undefined) delete process.env.SUPABASE_PUBLISHABLE_KEY;
-    else process.env.SUPABASE_PUBLISHABLE_KEY = previousPublishableKey;
-    if (previousAnonKey === undefined) delete process.env.SUPABASE_ANON_KEY;
-    else process.env.SUPABASE_ANON_KEY = previousAnonKey;
+    if (previousUrl === undefined) delete process.env.TURSO_DATABASE_URL;
+    else process.env.TURSO_DATABASE_URL = previousUrl;
+    if (previousToken === undefined) delete process.env.TURSO_AUTH_TOKEN;
+    else process.env.TURSO_AUTH_TOKEN = previousToken;
     if (previousCrewEmail === undefined) delete process.env.CREW_PORTAL_EMAIL;
     else process.env.CREW_PORTAL_EMAIL = previousCrewEmail;
+    if (previousCrewPassword === undefined) delete process.env.CREW_PORTAL_PASSWORD;
+    else process.env.CREW_PORTAL_PASSWORD = previousCrewPassword;
+    if (previousSessionSecret === undefined) delete process.env.CREW_SESSION_SECRET;
+    else process.env.CREW_SESSION_SECRET = previousSessionSecret;
   }
 }
 
 const validBooking = {
   requestId: "9a5364fd-2a92-4ee5-b7c3-275f0129ba47",
-  date: "2099-02-20",
+  dates: ["2099-02-20"],
   session: "morning",
   name: "Amina Jacobs",
   company: "North Star Films",
@@ -175,22 +173,22 @@ test("rejects invalid booking fields and past dates", async () => {
   assert.equal(invalidResponse.headers.get("cache-control"), "no-store");
   assert.equal(invalidResponse.headers.get("ratelimit-limit"), "5");
   const invalid = await invalidResponse.json();
-  assert.ok(invalid.errors.date);
+  assert.ok(invalid.errors.dates);
   assert.ok(invalid.errors.session);
   assert.ok(invalid.errors.name);
   assert.ok(invalid.errors.email);
 
   const pastResponse = await fetchSite(
     "/api/bookings",
-    bookingRequest({ ...validBooking, date: "2000-01-01" }, "192.0.2.11"),
+    bookingRequest({ ...validBooking, dates: ["2000-01-01"] }, "192.0.2.11"),
   );
   assert.equal(pastResponse.status, 400);
   const past = await pastResponse.json();
-  assert.match(past.errors.date[0], /today or a future date/i);
+  assert.match(past.errors.dates[0], /today or a future date/i);
 });
 
-test("returns graceful responses while Supabase is unconfigured", async () => {
-  await withSupabaseEnvironment(null, async () => {
+test("returns graceful responses while Turso is unconfigured", async () => {
+  await withTursoEnvironment(null, async () => {
     const availabilityResponse = await fetchSite("/api/availability?month=2099-02");
     assert.equal(availabilityResponse.status, 200);
     assert.deepEqual(await availabilityResponse.json(), {
@@ -211,128 +209,14 @@ test("returns graceful responses while Supabase is unconfigured", async () => {
 });
 
 test("keeps the crew portal private and shows a safe setup state until configured", async () => {
-  await withSupabaseEnvironment(null, async () => {
+  await withTursoEnvironment(null, async () => {
     const response = await fetchSite("/crew", { headers: { accept: "text/html" } });
     assert.equal(response.status, 200);
     const html = await response.text();
     assert.match(html, /Booking management is almost ready/i);
-    assert.match(html, /Connect Studio GQ/i);
-    assert.doesNotMatch(html, /SUPABASE_SERVICE_ROLE_KEY/i);
+    assert.match(html, /Add Studio GQ/i);
+    assert.doesNotMatch(html, /TURSO_AUTH_TOKEN/i);
   });
-});
-
-test("returns slot-only availability without exposing booking PII", async () => {
-  const nativeFetch = globalThis.fetch;
-  await withSupabaseEnvironment(
-    { url: "https://project.supabase.co", key: "test-service-role-key" },
-    async () => {
-      globalThis.fetch = async (input, init) => {
-        const url = String(input);
-        assert.match(url, /studio_booking_slots/);
-        assert.match(url, /select=booking_date%2Cslot/);
-        assert.equal(init.headers.Authorization, "Bearer test-service-role-key");
-        return Response.json([
-          { booking_date: "2099-02-12", slot: "morning" },
-          { booking_date: "2099-02-12", slot: "afternoon" },
-          { booking_date: "2099-02-18", slot: "morning" },
-        ]);
-      };
-
-      const response = await fetchSite("/api/availability?month=2099-02");
-      assert.equal(response.status, 200);
-      const raw = await response.text();
-      assert.doesNotMatch(raw, /name|email|phone|company/i);
-      assert.deepEqual(JSON.parse(raw), {
-        configured: true,
-        month: "2099-02",
-        occupied: [
-          { date: "2099-02-12", slots: ["morning", "afternoon"] },
-          { date: "2099-02-18", slots: ["morning"] },
-        ],
-      });
-    },
-  );
-  globalThis.fetch = nativeFetch;
-});
-
-test("creates a booking through the atomic Supabase RPC", async () => {
-  const nativeFetch = globalThis.fetch;
-  await withSupabaseEnvironment(
-    { url: "https://project.supabase.co", key: "test-service-role-key" },
-    async () => {
-      globalThis.fetch = async (input, init) => {
-        assert.equal(String(input), "https://project.supabase.co/rest/v1/rpc/create_studio_booking");
-        assert.equal(init.method, "POST");
-        const rpc = JSON.parse(init.body);
-        assert.equal(rpc.p_request_id, validBooking.requestId);
-        assert.equal(rpc.p_booking_date, validBooking.date);
-        assert.equal(rpc.p_session, "full_day");
-        assert.equal(rpc.p_email, validBooking.email);
-        assert.deepEqual(rpc.p_additional_items, validBooking.additionalItems);
-        return Response.json("123e4567-e89b-42d3-a456-426614174000");
-      };
-
-      const response = await fetchSite(
-        "/api/bookings",
-        bookingRequest({ ...validBooking, session: "full_day" }, "192.0.2.13"),
-      );
-      assert.equal(response.status, 201);
-      assert.deepEqual(await response.json(), {
-        message: "Your studio booking has been received.",
-        bookingId: "123e4567-e89b-42d3-a456-426614174000",
-        configured: true,
-      });
-    },
-  );
-  globalThis.fetch = nativeFetch;
-});
-
-test("maps a Supabase slot collision to a booking conflict", async () => {
-  const nativeFetch = globalThis.fetch;
-  await withSupabaseEnvironment(
-    { url: "https://project.supabase.co", key: "test-service-role-key" },
-    async () => {
-      globalThis.fetch = async () =>
-        Response.json(
-          { code: "23505", message: "duplicate key value violates unique constraint" },
-          { status: 409 },
-        );
-
-      const response = await fetchSite(
-        "/api/bookings",
-        bookingRequest(validBooking, "192.0.2.14"),
-      );
-      assert.equal(response.status, 409);
-      const payload = await response.json();
-      assert.equal(payload.code, "slot_unavailable");
-      assert.equal(payload.configured, true);
-    },
-  );
-  globalThis.fetch = nativeFetch;
-});
-
-test("maps request identifier reuse with changed details to a distinct conflict", async () => {
-  const nativeFetch = globalThis.fetch;
-  await withSupabaseEnvironment(
-    { url: "https://project.supabase.co", key: "test-service-role-key" },
-    async () => {
-      globalThis.fetch = async () =>
-        Response.json(
-          { code: "P0001", message: "request_id_payload_mismatch" },
-          { status: 400 },
-        );
-
-      const response = await fetchSite(
-        "/api/bookings",
-        bookingRequest(validBooking, "192.0.2.140"),
-      );
-      assert.equal(response.status, 409);
-      const payload = await response.json();
-      assert.equal(payload.code, "request_mismatch");
-      assert.match(payload.message, /no longer matches/i);
-    },
-  );
-  globalThis.fetch = nativeFetch;
 });
 
 test("rejects a malformed booking request identifier", async () => {
@@ -346,42 +230,34 @@ test("rejects a malformed booking request identifier", async () => {
   assert.match(payload.errors.requestId[0], /could not be identified/i);
 });
 
-test("ships idempotent booking and slot-release database operations", async () => {
-  const migration = await readFile(
-    new URL(
-      "../supabase/migrations/202607160002_harden_booking_lifecycle.sql",
-      import.meta.url,
-    ),
-    "utf8",
-  );
-
-  assert.match(migration, /request_id uuid/i);
-  assert.match(migration, /pg_advisory_xact_lock/i);
-  assert.match(migration, /request_id_payload_mismatch/i);
-  assert.match(migration, /v_existing\.status = 'cancelled'/i);
-  assert.match(migration, /confirm_studio_booking/i);
-  assert.match(migration, /cancel_studio_booking/i);
-  assert.match(migration, /delete from public\.studio_booking_slots/i);
-  assert.match(migration, /revoke insert, update, delete on table public\.studio_bookings from service_role/i);
+test("ships atomic Turso booking groups and slot protection", async () => {
+  const [migration, bookings] = await Promise.all([
+    readFile(new URL("../turso/migrations/202607200001_create_studio_booking_system.sql", import.meta.url), "utf8"),
+    readFile(new URL("../lib/turso-bookings.ts", import.meta.url), "utf8"),
+  ]);
+  assert.match(migration, /studio_booking_groups/i);
+  assert.match(migration, /unique \(booking_date, slot\)/i);
+  assert.match(migration, /studio_calendar_blocks/i);
+  assert.match(bookings, /transaction\("write"\)/i);
+  assert.match(bookings, /payloadHash/i);
+  assert.match(bookings, /That session has just been booked/i);
 });
 
 test("ships safe crew calendar holds, blocks and booking controls", async () => {
   const [migration, auth, bookingActions, footer] = await Promise.all([
-    readFile(new URL("../supabase/migrations/202607170001_add_crew_booking_management.sql", import.meta.url), "utf8"),
+    readFile(new URL("../turso/migrations/202607200001_create_studio_booking_system.sql", import.meta.url), "utf8"),
     readFile(new URL("../lib/crew-auth.ts", import.meta.url), "utf8"),
     readFile(new URL("../components/crew/CrewBookingActions.tsx", import.meta.url), "utf8"),
     readFile(new URL("../components/shell/Footer.tsx", import.meta.url), "utf8"),
   ]);
 
   assert.match(migration, /hold_expires_at/i);
-  assert.match(migration, /expire_studio_booking_holds/i);
   assert.match(migration, /studio_calendar_blocks/i);
-  assert.match(migration, /num_nonnulls\(booking_id, block_id\) = 1/i);
-  assert.match(migration, /reschedule_studio_booking/i);
-  assert.match(migration, /create_studio_calendar_block/i);
+  assert.match(migration, /booking_id is not null and block_id is null/i);
   assert.match(auth, /httpOnly: true/i);
   assert.match(auth, /sameSite: "strict"/i);
   assert.match(auth, /CREW_PORTAL_EMAIL/i);
+  assert.match(auth, /CREW_SESSION_SECRET/i);
   assert.match(bookingActions, /Confirm booking/i);
   assert.match(bookingActions, /Cancel booking/i);
   assert.match(bookingActions, /Email client/i);

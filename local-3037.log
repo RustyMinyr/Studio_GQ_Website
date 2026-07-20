@@ -1,0 +1,25 @@
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3037
+- Network:       http://192.168.20.25:3037
+- Environments: .env.local
+✓ Ready in 250ms
+
+ GET / 200 in 372ms (next.js: 84ms, application-code: 288ms)
+[browser] eval() is not supported in this environment. If this page was served with a `Content-Security-Policy` header, make sure that `unsafe-eval` is included. React requires eval() in development mode for various debugging features like reconstructing callstacks from a different environment.
+React will never use eval() in production mode 
+    at checkEvalAvailabilityOnceDev (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:22:25)
+    at createResponseFromOptions (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2627:9)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:2822:24)
+    at module evaluation (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15094:29)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15224:47)
+    at <unknown> (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:194:9)
+    at loadScriptsInSequence (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:158:16)
+    at appBootstrap (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:187:5)
+    at module evaluation (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_client_0mnwhku._.js:15223:32) (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_compiled_react-server-dom-turbopack_0dzwqsz._.js:22:25)
+ GET /api/availability?month=2026-07 200 in 1266ms (next.js: 51ms, application-code: 1216ms)
+  Reload env: .env.local
+ GET / 200 in 60ms (next.js: 19ms, application-code: 41ms)
+  Reload env: .env.local
+ GET / 200 in 92ms (next.js: 21ms, application-code: 72ms)
+[browser] Image with src "/logos/studio-gq-white.png" was detected as the Largest Contentful Paint (LCP). Please add the `loading="eager"` property if this image is above the fold.
+Read more: https://nextjs.org/docs/app/api-reference/components/image#loading (file://C:/Users/brad/Documents/Studio GQ Website/.next/dev/static/chunks/0bl2_next_dist_126uayc._.js:2477:13)

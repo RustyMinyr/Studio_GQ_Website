@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { bookingSchema } from "@/lib/booking-schema";
+import { notifyStudioOfBooking } from "@/lib/booking-email";
 import {
   createBooking,
-  getSupabaseConfig,
-  SupabaseBookingError,
-} from "@/lib/supabase-bookings";
+  TursoBookingError,
+} from "@/lib/turso-bookings";
+import { getTursoConfig } from "@/lib/turso";
 
 const SITE_ORIGIN = "https://www.studiogq.co.za";
 const MAX_BODY_BYTES = 20_000;
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const config = getSupabaseConfig();
+  const config = getTursoConfig();
   if (!config) {
     return NextResponse.json(
       {
@@ -158,23 +159,25 @@ export async function POST(request: NextRequest) {
 
   try {
     const bookingId = await createBooking(config, parsed.data);
+    const notification = await notifyStudioOfBooking(parsed.data, bookingId);
     return NextResponse.json(
       {
-        message: "Your studio booking has been received.",
-        bookingId,
+        message: "Your studio booking has been received. The Studio GQ team will confirm availability shortly.",
+        bookingGroupId: bookingId,
+        notification: notification.reason,
         configured: true,
       },
       { status: 201, headers },
     );
   } catch (error) {
-    if (error instanceof SupabaseBookingError && error.kind === "idempotency") {
+    if (error instanceof TursoBookingError && error.kind === "idempotency") {
       return NextResponse.json(
         { message: error.message, code: "request_mismatch", configured: true },
         { status: 409, headers },
       );
     }
 
-    if (error instanceof SupabaseBookingError && error.kind === "conflict") {
+    if (error instanceof TursoBookingError && error.kind === "conflict") {
       return NextResponse.json(
         { message: error.message, code: "slot_unavailable", configured: true },
         { status: 409, headers },
@@ -184,7 +187,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         message:
-          error instanceof SupabaseBookingError
+          error instanceof TursoBookingError
             ? error.message
             : "The booking could not be saved. Please try again.",
         configured: true,

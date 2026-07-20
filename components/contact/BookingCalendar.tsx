@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { bookingSessions, currentJohannesburgDate } from "@/lib/booking-schema";
+import { bookingSessions, currentJohannesburgDate, sessionDetails } from "@/lib/booking-schema";
 
 type SessionValue = (typeof bookingSessions)[number]["value"];
 type OccupiedSlot = "morning" | "afternoon";
@@ -22,9 +22,9 @@ type AvailabilityState =
 
 type BookingCalendarProps = {
   refreshKey: number;
-  selectedDate: string;
+  selectedDates: string[];
   selectedSession: SessionValue | "";
-  onDateChange: (date: string) => void;
+  onDatesChange: (dates: string[]) => void;
   onSessionChange: (session: SessionValue | "") => void;
   onConfigurationChange: (configured: boolean | null) => void;
   dateError?: string[];
@@ -66,9 +66,9 @@ function isSessionOccupied(session: SessionValue, slots: Set<OccupiedSlot>) {
 
 export function BookingCalendar({
   refreshKey,
-  selectedDate,
+  selectedDates,
   selectedSession,
-  onDateChange,
+  onDatesChange,
   onSessionChange,
   onConfigurationChange,
   dateError,
@@ -140,24 +140,34 @@ export function BookingCalendar({
   const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const canGoBack = displayMonth > currentMonth;
   const selectionEnabled = availability.kind === "ready" || availability.kind === "preview";
-  const selectedSlots =
-    availability.kind === "ready" && selectedDate
-      ? availability.occupied.get(selectedDate) ?? new Set<OccupiedSlot>()
+  const selectedDateSlots = (date: string) =>
+    availability.kind === "ready"
+      ? availability.occupied.get(date) ?? new Set<OccupiedSlot>()
       : new Set<OccupiedSlot>();
+
+  useEffect(() => {
+    if (
+      selectedSession &&
+      availability.kind === "ready" &&
+      selectedDates.some((date) => isSessionOccupied(selectedSession, selectedDateSlots(date)))
+    ) {
+      onSessionChange("");
+    }
+  }, [availability, onSessionChange, selectedDates, selectedSession]);
 
   function changeMonth(offset: number) {
     setAvailability({ kind: "loading" });
     onConfigurationChange(null);
-    onDateChange("");
-    onSessionChange("");
     setDisplayMonth(
       (month) => new Date(month.getFullYear(), month.getMonth() + offset, 1),
     );
   }
 
   function selectDate(date: string) {
-    if (date !== selectedDate) onSessionChange("");
-    onDateChange(date);
+    const nextDates = selectedDates.includes(date)
+      ? selectedDates.filter((selected) => selected !== date)
+      : [...selectedDates, date].sort();
+    onDatesChange(nextDates);
   }
 
   return (
@@ -225,8 +235,12 @@ export function BookingCalendar({
                     const isPast = date < today;
                     const isFull = slots.has("morning") && slots.has("afternoon");
                     const isPartial = !isFull && slots.size > 0;
-                    const isSelected = selectedDate === dateKey;
-                    const disabled = isPast || isFull || !selectionEnabled;
+                    const isSelected = selectedDates.includes(dateKey);
+                    const disabled =
+                      isPast ||
+                      !selectionEnabled ||
+                      (isFull && !isSelected) ||
+                      (!isSelected && selectedDates.length >= 14);
                     const stateLabel = !selectionEnabled
                       ? "availability loading"
                       : isFull
@@ -234,8 +248,12 @@ export function BookingCalendar({
                         : isPartial
                           ? "some sessions booked"
                           : availability.kind === "preview"
-                            ? "preview date available"
-                            : "sessions open";
+                            ? isSelected
+                              ? "selected preview date"
+                              : "preview date available"
+                            : isSelected
+                              ? "selected"
+                              : "sessions open";
 
                     return (
                       <td className="p-0.5" key={dateKey}>
@@ -283,9 +301,17 @@ export function BookingCalendar({
               </p>
             ) : null}
             {availability.kind === "ready" ? (
-              <p>A dot means one half-day session is already booked.</p>
+              <p>
+                A dot means one half-day session is already booked. Select every date
+                you would like to include in this booking.
+              </p>
             ) : null}
           </div>
+          {selectedDates.length ? (
+            <p className="mt-3 text-sm leading-6 text-white">
+              {selectedDates.length} date{selectedDates.length === 1 ? "" : "s"} selected: {selectedDates.join(", ")}
+            </p>
+          ) : null}
           {dateError?.length ? (
             <p className="mt-2 text-sm text-white" id="date-error">
               {dateError[0]}
@@ -297,10 +323,10 @@ export function BookingCalendar({
           <p className="text-xs tracking-[0.16em] text-[#a7a7a3]">SESSION &amp; RATE</p>
           <div className="mt-3 grid gap-2">
             {bookingSessions.map((session) => {
-              const occupied = selectedDate
-                ? isSessionOccupied(session.value, selectedSlots)
-                : false;
-              const disabled = !selectedDate || !selectionEnabled || occupied;
+              const occupied = selectedDates.some((date) =>
+                isSessionOccupied(session.value, selectedDateSlots(date)),
+              );
+              const disabled = !selectedDates.length || !selectionEnabled || occupied;
               const isSelected = selectedSession === session.value;
 
               return (
@@ -321,7 +347,7 @@ export function BookingCalendar({
                     <span
                       className={`mt-1 block text-xs ${isSelected ? "text-[#565656]" : "text-[#a7a7a3]"}`}
                     >
-                      {session.time}{occupied ? " · Booked" : ""}
+                      {session.time}{occupied ? " · Unavailable on one or more selected dates" : ""}
                     </span>
                   </span>
                   <span className="shrink-0 text-sm">{session.priceLabel}</span>
@@ -330,9 +356,14 @@ export function BookingCalendar({
             })}
           </div>
           <p className="mt-3 text-sm leading-6 text-[#a7a7a3]" id="booking-rate-note">
-            Half day R2,500 · Full day R4,500. Rates exclude gear; equipment and production
-            support are quoted separately.
+            Half day R2,500 · Full day R4,500, per day. Rates exclude gear; equipment and
+            production support are quoted separately.
           </p>
+          {selectedSession && selectedDates.length ? (
+            <p className="mt-2 text-sm text-white">
+              Studio rate for {selectedDates.length} day{selectedDates.length === 1 ? "" : "s"}: {new Intl.NumberFormat("en-ZA", { style: "currency", currency: "ZAR", maximumFractionDigits: 0 }).format(sessionDetails[selectedSession].priceZar * selectedDates.length)}
+            </p>
+          ) : null}
           {sessionError?.length ? (
             <p className="mt-2 text-sm text-white" id="session-error">
               {sessionError[0]}

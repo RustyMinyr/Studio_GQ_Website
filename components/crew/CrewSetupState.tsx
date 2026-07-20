@@ -10,7 +10,7 @@ export function CrewSetupState() {
             Booking management is almost ready.
           </h1>
           <p className="mt-6 max-w-lg text-base leading-7 text-[#a7a7a3]">
-            Connect Studio GQ&apos;s Supabase booking details to start viewing and managing enquiries here.
+            Add Studio GQ&apos;s Turso database and shared crew login details to start viewing and managing enquiries here.
           </p>
           <Link
             className="mt-8 inline-flex min-h-12 items-center border border-white bg-white px-5 text-xs font-semibold tracking-[.14em] !text-[#050505] uppercase transition-colors hover:bg-[#e7e7e4]"

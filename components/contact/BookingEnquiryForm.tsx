@@ -62,7 +62,7 @@ function generateRequestId() {
 }
 
 export function BookingEnquiryForm() {
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDates, setSelectedDates] = useState<string[]>([]);
   const [selectedSession, setSelectedSession] = useState<BookingSession | "">("");
   const [calendarConfigured, setCalendarConfigured] = useState<boolean | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -83,7 +83,7 @@ export function BookingEnquiryForm() {
   function focusFirstError(errors: FieldErrors) {
     requestAnimationFrame(() => {
       const selector =
-        errors.date?.length || errors.session?.length
+        errors.dates?.length || errors.session?.length
           ? "#booking-calendar"
           : '[aria-invalid="true"]';
       formRef.current?.querySelector<HTMLElement>(selector)?.focus();
@@ -93,7 +93,7 @@ export function BookingEnquiryForm() {
   function resetForm() {
     formRef.current?.reset();
     requestIdRef.current = null;
-    setSelectedDate("");
+    setSelectedDates([]);
     setSelectedSession("");
     setFieldErrors({});
   }
@@ -108,9 +108,9 @@ export function BookingEnquiryForm() {
     requestIdRef.current = null;
   }
 
-  function handleDateChange(date: string) {
-    if (date !== selectedDate) resetRequestId();
-    setSelectedDate(date);
+  function handleDatesChange(dates: string[]) {
+    resetRequestId();
+    setSelectedDates(dates);
   }
 
   function handleSessionChange(session: BookingSession | "") {
@@ -126,7 +126,8 @@ export function BookingEnquiryForm() {
     const emailBody = [
       "Studio GQ booking enquiry",
       "",
-      `Requested date: ${formatDate(payload.date)}`,
+      "Requested dates:",
+      ...payload.dates.map((date) => `• ${formatDate(date)}`),
       `Session: ${sessionDetails[payload.session].label}`,
       `Rate: ${session?.priceLabel ?? ""} excluding gear`,
       `Additional items: ${selectedExtras.length ? selectedExtras.join(", ") : "None"}`,
@@ -140,9 +141,9 @@ export function BookingEnquiryForm() {
       "About the production:",
       payload.message,
     ].join("\n");
-    const subject = `Studio GQ booking enquiry — ${formatDate(payload.date)}`;
+    const subject = `Studio GQ booking enquiry — ${payload.dates.length} day${payload.dates.length === 1 ? "" : "s"}`;
 
-    window.location.href = `mailto:bookings@studiogq.co.za?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    window.location.href = `mailto:booking@studiogq.co.za?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -158,7 +159,7 @@ export function BookingEnquiryForm() {
       setSubmission({
         kind: "error",
         message:
-          "This browser could not securely identify the booking request. Please refresh or email bookings@studiogq.co.za.",
+          "This browser could not securely identify the booking request. Please refresh or email booking@studiogq.co.za.",
       });
       focusFeedback();
       return;
@@ -168,6 +169,7 @@ export function BookingEnquiryForm() {
     const rawPayload = {
       ...Object.fromEntries(formData.entries()),
       requestId: currentRequestId,
+      dates: formData.getAll("dates"),
       additionalItems: formData.getAll("additionalItems"),
     };
     const parsed = bookingSchema.safeParse(rawPayload);
@@ -272,7 +274,7 @@ export function BookingEnquiryForm() {
     } catch {
       setSubmission({
         kind: "error",
-        message: "We could not connect. Please try again or email bookings@studiogq.co.za.",
+        message: "We could not connect. Please try again or email booking@studiogq.co.za.",
       });
       focusFeedback();
     }
@@ -296,17 +298,19 @@ export function BookingEnquiryForm() {
       <fieldset className="contents" disabled={isSubmitting}>
       <legend className="sr-only">Studio booking enquiry</legend>
       <BookingCalendar
-        dateError={fieldErrors.date}
+        dateError={fieldErrors.dates}
         onConfigurationChange={handleConfigurationChange}
-        onDateChange={handleDateChange}
+        onDatesChange={handleDatesChange}
         onSessionChange={handleSessionChange}
         refreshKey={refreshKey}
-        selectedDate={selectedDate}
+        selectedDates={selectedDates}
         selectedSession={selectedSession}
         sessionError={fieldErrors.session}
       />
 
-      <input name="date" type="hidden" value={selectedDate} />
+      {selectedDates.map((date) => (
+        <input key={date} name="dates" type="hidden" value={date} />
+      ))}
       <input name="session" type="hidden" value={selectedSession} />
 
       <fieldset className="border border-[#565656] p-5 sm:p-6">

@@ -7,8 +7,8 @@ This file is the source of truth for every contributor. The supplied brief, logo
 - Next.js App Router with TypeScript and React Server Components by default.
 - Tailwind CSS for layout and responsive composition, with design tokens and reset rules in `app/globals.css`.
 - Framer Motion only inside small client components that need reveal or overlay interaction.
-- Zod validation at the booking API boundary, with server-only Supabase REST access for availability and reservations.
-- Browser-generated request UUIDs make booking retries idempotent; service-role-only confirm/cancel RPCs own booking status changes and slot release.
+- Zod validation at the booking API boundary, with server-only Turso access for availability and reservations.
+- Browser-generated request UUIDs make booking retries idempotent; Turso write transactions own booking status changes and slot release.
 - Standard Next.js source remains Vercel-ready. The existing vinext/Sites adapter is retained for the Codex preview and private production deployment.
 
 ## Route model
@@ -17,7 +17,7 @@ This file is the source of truth for every contributor. The supplied brief, logo
 - `/booking`: customer-facing booking portal with calendar, sessions, rates and full production enquiry details.
 - `/about`, `/spaces`, `/equipment`, `/faq`, and `/contact` redirect to matching homepage anchors. `/gallery` redirects to the homepage.
 - `/api/availability`: no-store availability endpoint that exposes occupied dates and slots without customer details.
-- `/api/bookings`: validated booking endpoint with honeypot, same-origin checks, rate limiting, and atomic Supabase slot reservation.
+- `/api/bookings`: validated booking endpoint with honeypot, same-origin checks, rate limiting, and atomic Turso slot reservation.
 - `sitemap.ts` and `robots.ts`: canonical discovery for `https://www.studiogq.co.za`.
 
 ## Component boundaries
@@ -75,7 +75,7 @@ The supplied set does not include distinct greenscreen, podcast-room, or boardro
 
 - Homepage UI agent: `app/page.tsx` and `components/home/*` only.
 - One-page sections: `components/home/*`, with legacy route redirects under `app/*`.
-- Backend/SEO/QA: `app/api/bookings`, `app/api/availability`, booking validation and Supabase helpers, migrations, SEO routes, and test files.
+- Backend/SEO/QA: `app/api/bookings`, `app/api/availability`, booking validation and Turso helpers, migrations, SEO routes, and test files.
 - Lead agent: `app/layout.tsx`, `app/globals.css`, `components/ui/*`, `components/shell/*`, shared `lib/site-content.ts`, assets, dependencies, integration, documentation, build, browser QA, and deployment.
 
 Agents must not edit files outside their ownership. If a missing shared primitive blocks work, they should use the documented import contract and report it for lead integration instead of creating a duplicate.

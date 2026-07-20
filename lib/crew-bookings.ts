@@ -1,3 +1,7 @@
+import { randomUUID } from "node:crypto";
+
+import type { Row, Transaction } from "@tursodatabase/serverless/compat";
+
 import type { BookingSession } from "@/lib/booking-schema";
 import type {
   CrewBooking,
@@ -6,6 +10,7 @@ import type {
   CrewClientEmailDraft,
   CrewDashboard,
 } from "@/lib/crew-types";
+import { getTursoClient, getTursoConfig, type TursoConfig } from "@/lib/turso";
 
 export type {
   CrewBooking,
@@ -17,42 +22,9 @@ export type {
   CrewDashboard,
 } from "@/lib/crew-types";
 
-const SUPABASE_TIMEOUT_MS = 8_000;
 const CREW_CONTACT_EMAIL = "bookings@studiogq.co.za";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
-
-type CrewSupabaseConfig = {
-  url: string;
-  serviceRoleKey: string;
-};
-
-type BookingRow = {
-  id: string;
-  booking_date: string;
-  session: BookingSession;
-  name: string;
-  company: string | null;
-  email: string;
-  phone: string;
-  additional_items: string[] | null;
-  message: string;
-  price_zar: number;
-  status: "pending" | "confirmed" | "cancelled" | "expired";
-  hold_expires_at: string | null;
-  created_at: string;
-  updated_at: string;
-};
-
-type CalendarBlockRow = {
-  id: string;
-  booking_date: string;
-  session: BookingSession;
-  title: string;
-  note: string | null;
-  created_at: string;
-  updated_at: string;
-};
 
 export class CrewBookingError extends Error {
   constructor(
@@ -65,38 +37,15 @@ export class CrewBookingError extends Error {
   }
 }
 
-function getCrewSupabaseConfig(): CrewSupabaseConfig {
-  const url = process.env.SUPABASE_URL?.trim().replace(/\/$/, "");
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-
-  if (!url || !serviceRoleKey) {
+function requireConfig(): TursoConfig {
+  const config = getTursoConfig();
+  if (!config) {
     throw new CrewBookingError(
-      "The crew portal is not connected to Supabase yet.",
+      "The crew portal is not connected to Turso yet.",
       "configuration",
     );
   }
-
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== "https:" && parsed.hostname !== "localhost") {
-      throw new Error("Unsupported Supabase URL");
-    }
-  } catch {
-    throw new CrewBookingError(
-      "The crew portal Supabase configuration is invalid.",
-      "configuration",
-    );
-  }
-
-  return { url, serviceRoleKey };
-}
-
-function headers(config: CrewSupabaseConfig) {
-  return {
-    apikey: config.serviceRoleKey,
-    Authorization: `Bearer ${config.serviceRoleKey}`,
-    "Content-Type": "application/json",
-  };
+  return config;
 }
 
 function sessionLabel(session: BookingSession) {
@@ -105,127 +54,12 @@ function sessionLabel(session: BookingSession) {
   return "Full day · 10 hours";
 }
 
-function assertUuid(value: string) {
-  if (!UUID_PATTERN.test(value)) {
-    throw new CrewBookingError("Choose a valid booking.", "invalid");
-  }
+function slotsForSession(session: BookingSession) {
+  return session === "full_day" ? ["morning", "afternoon"] : [session];
 }
 
-function assertDate(value: string) {
-  if (!DATE_PATTERN.test(value) || Number.isNaN(new Date(`${value}T00:00:00Z`).valueOf())) {
-    throw new CrewBookingError("Choose a valid booking date.", "invalid");
-  }
-}
-
-function assertSession(value: string): asserts value is BookingSession {
-  if (value !== "morning" && value !== "afternoon" && value !== "full_day") {
-    throw new CrewBookingError("Choose a valid booking session.", "invalid");
-  }
-}
-
-function normaliseBooking(row: BookingRow): CrewBooking {
-  return {
-    id: row.id,
-    kind: "booking",
-    bookingDate: row.booking_date,
-    session: row.session,
-    status: row.status,
-    title: row.name,
-    name: row.name,
-    company: row.company,
-    email: row.email,
-    phone: row.phone,
-    additionalItems: (row.additional_items ?? []) as CrewBooking["additionalItems"],
-    message: row.message,
-    priceZar: row.price_zar,
-    holdExpiresAt: row.hold_expires_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function normaliseBlock(row: CalendarBlockRow): CrewCalendarBlock {
-  return {
-    id: row.id,
-    bookingDate: row.booking_date,
-    session: row.session,
-    title: row.title,
-    note: row.note,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-function blockAsCalendarItem(row: CalendarBlockRow): CrewBooking {
-  return {
-    id: row.id,
-    kind: "block",
-    bookingDate: row.booking_date,
-    session: row.session,
-    status: "blocked",
-    title: row.title,
-    name: null,
-    company: null,
-    email: null,
-    phone: null,
-    additionalItems: [],
-    message: row.note,
-    priceZar: null,
-    holdExpiresAt: null,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
-
-async function requestJson<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
-  const config = getCrewSupabaseConfig();
-  let response: Response;
-
-  try {
-    response = await fetch(`${config.url}/rest/v1/${path}`, {
-      ...init,
-      headers: { ...headers(config), ...init?.headers },
-      cache: "no-store",
-      signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS),
-    });
-  } catch {
-    throw new CrewBookingError(
-      "The booking service is temporarily unavailable.",
-      "upstream",
-    );
-  }
-
-  if (!response.ok) {
-    let code = "";
-    try {
-      code = String(((await response.json()) as { code?: string }).code ?? "");
-    } catch {
-      // Keep the response message intentionally generic for the crew UI.
-    }
-    throw new CrewBookingError(
-      code === "23505"
-        ? "That session is no longer available. Choose another time."
-        : "The booking service could not complete that request.",
-      code === "23505" ? "conflict" : "upstream",
-      response.status,
-    );
-  }
-
-  return (await response.json()) as T;
-}
-
-async function runRpc<T>(name: string, body: Record<string, unknown>) {
-  return requestJson<T>(`rpc/${name}`, {
-    method: "POST",
-    body: JSON.stringify(body),
-  });
-}
-
-async function releaseExpiredHolds() {
-  await runRpc<number>("expire_studio_booking_holds", {});
+function nowIso() {
+  return new Date().toISOString();
 }
 
 function todayInJohannesburg() {
@@ -239,188 +73,379 @@ function todayInJohannesburg() {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
-const bookingSelect = [
-  "id",
-  "booking_date",
-  "session",
-  "name",
-  "company",
-  "email",
-  "phone",
-  "additional_items",
-  "message",
-  "price_zar",
-  "status",
-  "hold_expires_at",
-  "created_at",
-  "updated_at",
-].join(",");
+function assertUuid(value: string) {
+  if (!UUID_PATTERN.test(value)) throw new CrewBookingError("Choose a valid booking.", "invalid");
+}
 
-/** Summary data for the simple shared crew dashboard. */
-export async function getCrewDashboard(): Promise<CrewDashboard> {
-  await releaseExpiredHolds();
+function assertDate(value: string) {
+  if (!DATE_PATTERN.test(value) || new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) !== value) {
+    throw new CrewBookingError("Choose a valid booking date.", "invalid");
+  }
+}
 
-  const today = todayInJohannesburg();
-  const oneDayFromNow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-  const [pending, confirmed, expiring, upcoming] = await Promise.all([
-    requestJson<BookingRow[]>(
-      `studio_bookings?select=id&status=eq.pending&order=created_at.asc`,
-    ),
-    requestJson<BookingRow[]>(
-      `studio_bookings?select=id&status=eq.confirmed&order=booking_date.asc`,
-    ),
-    requestJson<BookingRow[]>(
-      `studio_bookings?select=id&status=eq.pending&hold_expires_at=lte.${encodeURIComponent(oneDayFromNow)}&order=hold_expires_at.asc`,
-    ),
-    requestJson<BookingRow[]>(
-      `studio_bookings?select=${bookingSelect}&booking_date=gte.${today}&status=in.(pending,confirmed)&order=booking_date.asc,created_at.asc&limit=8`,
-    ),
-  ]);
+function assertFutureOrToday(value: string, label: string) {
+  assertDate(value);
+  if (value < todayInJohannesburg()) {
+    throw new CrewBookingError(`${label} date cannot be in the past.`, "invalid");
+  }
+}
 
+function assertSession(value: string): asserts value is BookingSession {
+  if (value !== "morning" && value !== "afternoon" && value !== "full_day") {
+    throw new CrewBookingError("Choose a valid booking session.", "invalid");
+  }
+}
+
+function text(row: Row, key: string) {
+  const value = row[key];
+  return typeof value === "string" ? value : "";
+}
+
+function nullableText(row: Row, key: string) {
+  const value = row[key];
+  return typeof value === "string" ? value : null;
+}
+
+function parseItems(value: unknown): CrewBooking["additionalItems"] {
+  if (typeof value !== "string") return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") as CrewBooking["additionalItems"] : [];
+  } catch {
+    return [];
+  }
+}
+
+function normaliseBooking(row: Row): CrewBooking {
   return {
-    pendingCount: pending.length,
-    confirmedCount: confirmed.length,
-    holdsExpiringCount: expiring.length,
-    upcomingBookings: upcoming.map(normaliseBooking),
+    id: text(row, "id"),
+    kind: "booking",
+    bookingDate: text(row, "booking_date"),
+    session: text(row, "session") as BookingSession,
+    status: text(row, "status") as CrewBooking["status"],
+    title: text(row, "name"),
+    name: nullableText(row, "name"),
+    company: nullableText(row, "company"),
+    email: nullableText(row, "email"),
+    phone: nullableText(row, "phone"),
+    additionalItems: parseItems(row.additional_items),
+    message: nullableText(row, "message"),
+    priceZar: typeof row.price_zar === "number" ? row.price_zar : null,
+    holdExpiresAt: nullableText(row, "hold_expires_at"),
+    createdAt: text(row, "created_at"),
+    updatedAt: text(row, "updated_at"),
   };
 }
 
-/** Active bookings and internal blocks for a single calendar month. */
-export async function getCrewCalendar(
-  year: number,
-  month: number,
-): Promise<CrewBooking[]> {
+function normaliseBlock(row: Row): CrewCalendarBlock {
+  return {
+    id: text(row, "id"),
+    bookingDate: text(row, "booking_date"),
+    session: text(row, "session") as BookingSession,
+    title: text(row, "title"),
+    note: nullableText(row, "note"),
+    createdAt: text(row, "created_at"),
+    updatedAt: text(row, "updated_at"),
+  };
+}
+
+function blockAsCalendarItem(row: Row): CrewBooking {
+  const block = normaliseBlock(row);
+  return {
+    id: block.id,
+    kind: "block",
+    bookingDate: block.bookingDate,
+    session: block.session,
+    status: "blocked",
+    title: block.title,
+    name: null,
+    company: null,
+    email: null,
+    phone: null,
+    additionalItems: [],
+    message: block.note,
+    priceZar: null,
+    holdExpiresAt: null,
+    createdAt: block.createdAt,
+    updatedAt: block.updatedAt,
+  };
+}
+
+function isConstraintError(error: unknown) {
+  const candidate = error as { code?: unknown; extendedCode?: unknown; message?: unknown };
+  return [candidate?.code, candidate?.extendedCode, candidate?.message]
+    .map((value) => String(value ?? ""))
+    .some((value) => /constraint|unique/i.test(value));
+}
+
+async function rollbackQuietly(transaction: Transaction) {
+  if (!transaction.closed) {
+    try {
+      await transaction.rollback();
+    } catch {
+      // The original error is the useful one for the caller.
+    }
+  }
+}
+
+async function releaseExpiredHolds(config: TursoConfig) {
+  const client = getTursoClient(config);
+  try {
+    const now = nowIso();
+    await client.batch([
+      { sql: "update studio_bookings set status = 'expired', hold_expires_at = null, updated_at = ? where status = 'pending' and hold_expires_at <= ?", args: [now, now] },
+      { sql: "delete from studio_booking_slots where booking_id in (select id from studio_bookings where status = 'expired')" },
+    ], "write");
+  } finally {
+    client.close();
+  }
+}
+
+const bookingColumns = "id, booking_date, session, name, company, email, phone, additional_items, message, price_zar, status, hold_expires_at, created_at, updated_at";
+
+export async function getCrewDashboard(): Promise<CrewDashboard> {
+  const config = requireConfig();
+  await releaseExpiredHolds(config);
+  const client = getTursoClient(config);
+  try {
+    const today = todayInJohannesburg();
+    const oneDayFromNow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    const [pending, confirmed, expiring, upcoming] = await Promise.all([
+      client.execute("select count(*) as count from studio_bookings where status = 'pending'"),
+      client.execute("select count(*) as count from studio_bookings where status = 'confirmed'"),
+      client.execute({ sql: "select count(*) as count from studio_bookings where status = 'pending' and hold_expires_at <= ?", args: [oneDayFromNow] }),
+      client.execute({ sql: `select ${bookingColumns} from studio_bookings where booking_date >= ? and status in ('pending', 'confirmed') order by booking_date asc, created_at asc limit 8`, args: [today] }),
+    ]);
+    return {
+      pendingCount: Number(pending.rows[0]?.count ?? 0),
+      confirmedCount: Number(confirmed.rows[0]?.count ?? 0),
+      holdsExpiringCount: Number(expiring.rows[0]?.count ?? 0),
+      upcomingBookings: upcoming.rows.map(normaliseBooking),
+    };
+  } catch {
+    throw new CrewBookingError("The booking service is temporarily unavailable.", "upstream");
+  } finally {
+    client.close();
+  }
+}
+
+function monthRange(year: number, month: number) {
   if (!Number.isInteger(year) || year < 2000 || year > 2200 || !Number.isInteger(month) || month < 1 || month > 12) {
     throw new CrewBookingError("Choose a valid calendar month.", "invalid");
   }
-
-  await releaseExpiredHolds();
-
   const firstDate = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDate = `${year}-${String(month).padStart(2, "0")}-${String(new Date(Date.UTC(year, month, 0)).getUTCDate()).padStart(2, "0")}`;
-  const range = `booking_date=gte.${firstDate}&booking_date=lte.${lastDate}`;
-  const [bookings, blocks] = await Promise.all([
-    requestJson<BookingRow[]>(
-      `studio_bookings?select=${bookingSelect}&${range}&status=in.(pending,confirmed)&order=booking_date.asc,created_at.asc`,
-    ),
-    requestJson<CalendarBlockRow[]>(
-      `studio_calendar_blocks?select=id,booking_date,session,title,note,created_at,updated_at&${range}&order=booking_date.asc,created_at.asc`,
-    ),
-  ]);
-
-  return [...bookings.map(normaliseBooking), ...blocks.map(blockAsCalendarItem)].sort(
-    (left, right) =>
-      left.bookingDate.localeCompare(right.bookingDate) ||
-      left.createdAt.localeCompare(right.createdAt),
-  );
+  return { firstDate, lastDate };
 }
 
-/** Internal block data for a future calendar treatment. Blocks reserve slots but are not client bookings. */
-export async function getCrewCalendarBlocks(
-  year: number,
-  month: number,
-): Promise<CrewCalendarBlock[]> {
-  if (!Number.isInteger(year) || year < 2000 || year > 2200 || !Number.isInteger(month) || month < 1 || month > 12) {
-    throw new CrewBookingError("Choose a valid calendar month.", "invalid");
+export async function getCrewCalendar(year: number, month: number): Promise<CrewBooking[]> {
+  const { firstDate, lastDate } = monthRange(year, month);
+  const config = requireConfig();
+  await releaseExpiredHolds(config);
+  const client = getTursoClient(config);
+  try {
+    const [bookings, blocks] = await Promise.all([
+      client.execute({ sql: `select ${bookingColumns} from studio_bookings where booking_date between ? and ? and status in ('pending', 'confirmed') order by booking_date asc, created_at asc`, args: [firstDate, lastDate] }),
+      client.execute({ sql: "select id, booking_date, session, title, note, created_at, updated_at from studio_calendar_blocks where booking_date between ? and ? order by booking_date asc, created_at asc", args: [firstDate, lastDate] }),
+    ]);
+    return [...bookings.rows.map(normaliseBooking), ...blocks.rows.map(blockAsCalendarItem)].sort(
+      (left, right) => left.bookingDate.localeCompare(right.bookingDate) || left.createdAt.localeCompare(right.createdAt),
+    );
+  } catch {
+    throw new CrewBookingError("The booking service is temporarily unavailable.", "upstream");
+  } finally {
+    client.close();
   }
-
-  const firstDate = `${year}-${String(month).padStart(2, "0")}-01`;
-  const lastDate = `${year}-${String(month).padStart(2, "0")}-${String(new Date(Date.UTC(year, month, 0)).getUTCDate()).padStart(2, "0")}`;
-  return requestJson<CalendarBlockRow[]>(
-    `studio_calendar_blocks?select=id,booking_date,session,title,note,created_at,updated_at&booking_date=gte.${firstDate}&booking_date=lte.${lastDate}&order=booking_date.asc,created_at.asc`,
-  ).then((blocks) => blocks.map(normaliseBlock));
 }
 
-/** A complete client booking record for the booking drawer/detail screen. */
+export async function getCrewCalendarBlocks(year: number, month: number): Promise<CrewCalendarBlock[]> {
+  const { firstDate, lastDate } = monthRange(year, month);
+  const client = getTursoClient(requireConfig());
+  try {
+    const blocks = await client.execute({ sql: "select id, booking_date, session, title, note, created_at, updated_at from studio_calendar_blocks where booking_date between ? and ? order by booking_date asc, created_at asc", args: [firstDate, lastDate] });
+    return blocks.rows.map(normaliseBlock);
+  } catch {
+    throw new CrewBookingError("The booking service is temporarily unavailable.", "upstream");
+  } finally {
+    client.close();
+  }
+}
+
 export async function getCrewBooking(id: string): Promise<CrewBooking | null> {
   assertUuid(id);
-  await releaseExpiredHolds();
-
-  const rows = await requestJson<BookingRow[]>(
-    `studio_bookings?select=${bookingSelect}&id=eq.${encodeURIComponent(id)}&limit=1`,
-  );
-  return rows[0] ? normaliseBooking(rows[0]) : null;
+  const config = requireConfig();
+  await releaseExpiredHolds(config);
+  const client = getTursoClient(config);
+  try {
+    const result = await client.execute({ sql: `select ${bookingColumns} from studio_bookings where id = ? limit 1`, args: [id] });
+    return result.rows[0] ? normaliseBooking(result.rows[0]) : null;
+  } catch {
+    throw new CrewBookingError("The booking service is temporarily unavailable.", "upstream");
+  } finally {
+    client.close();
+  }
 }
 
 export async function confirmCrewBooking(id: string): Promise<boolean> {
   assertUuid(id);
-  return runRpc<boolean>("confirm_studio_booking", { p_booking_id: id });
+  const config = requireConfig();
+  await releaseExpiredHolds(config);
+  const client = getTursoClient(config);
+  try {
+    const current = await client.execute({ sql: "select status from studio_bookings where id = ? limit 1", args: [id] });
+    const status = current.rows[0]?.status;
+    if (status === "confirmed") return true;
+    if (status !== "pending") return false;
+    const result = await client.execute({ sql: "update studio_bookings set status = 'confirmed', hold_expires_at = null, updated_at = ? where id = ? and status = 'pending'", args: [nowIso(), id] });
+    return result.rowsAffected === 1;
+  } finally {
+    client.close();
+  }
 }
 
 export async function cancelCrewBooking(id: string): Promise<boolean> {
   assertUuid(id);
-  return runRpc<boolean>("cancel_studio_booking", { p_booking_id: id });
+  const client = getTursoClient(requireConfig());
+  const transaction = await client.transaction("write");
+  try {
+    const current = await transaction.execute({ sql: "select status from studio_bookings where id = ? limit 1", args: [id] });
+    const status = current.rows[0]?.status;
+    if (status === "cancelled") {
+      await transaction.commit();
+      return true;
+    }
+    if (status !== "pending" && status !== "confirmed") {
+      await transaction.commit();
+      return false;
+    }
+    await transaction.execute({ sql: "update studio_bookings set status = 'cancelled', hold_expires_at = null, updated_at = ? where id = ?", args: [nowIso(), id] });
+    await transaction.execute({ sql: "delete from studio_booking_slots where booking_id = ?", args: [id] });
+    await transaction.commit();
+    return true;
+  } catch (error) {
+    await rollbackQuietly(transaction);
+    throw new CrewBookingError("The booking service could not complete that request.", "upstream");
+  } finally {
+    client.close();
+  }
 }
 
-export async function rescheduleCrewBooking(
-  id: string,
-  bookingDate: string,
-  session: BookingSession,
-): Promise<boolean> {
+async function replaceBookingSlots(transaction: Transaction, bookingId: string, bookingDate: string, session: BookingSession) {
+  await transaction.execute({ sql: "delete from studio_booking_slots where booking_id = ?", args: [bookingId] });
+  for (const slot of slotsForSession(session)) {
+    await transaction.execute({ sql: "insert into studio_booking_slots (booking_id, booking_date, slot, created_at) values (?, ?, ?, ?)", args: [bookingId, bookingDate, slot, nowIso()] });
+  }
+}
+
+export async function rescheduleCrewBooking(id: string, bookingDate: string, session: BookingSession): Promise<boolean> {
   assertUuid(id);
-  assertDate(bookingDate);
+  assertFutureOrToday(bookingDate, "Booking");
   assertSession(session);
-  return runRpc<boolean>("reschedule_studio_booking", {
-    p_booking_id: id,
-    p_booking_date: bookingDate,
-    p_session: session,
-  });
+  const config = requireConfig();
+  await releaseExpiredHolds(config);
+  const client = getTursoClient(config);
+  const transaction = await client.transaction("write");
+  try {
+    const current = await transaction.execute({ sql: "select status from studio_bookings where id = ? limit 1", args: [id] });
+    if (current.rows[0]?.status !== "pending" && current.rows[0]?.status !== "confirmed") {
+      await transaction.commit();
+      return false;
+    }
+    await replaceBookingSlots(transaction, id, bookingDate, session);
+    await transaction.execute({ sql: "update studio_bookings set booking_date = ?, session = ?, price_zar = ?, updated_at = ? where id = ?", args: [bookingDate, session, session === "full_day" ? 4500 : 2500, nowIso(), id] });
+    await transaction.commit();
+    return true;
+  } catch (error) {
+    await rollbackQuietly(transaction);
+    if (isConstraintError(error)) throw new CrewBookingError("That session is no longer available. Choose another time.", "conflict");
+    throw new CrewBookingError("The booking service could not complete that request.", "upstream");
+  } finally {
+    client.close();
+  }
 }
 
-export async function createCrewCalendarBlock(
-  input: CrewCalendarBlockInput,
-): Promise<string> {
-  assertDate(input.bookingDate);
+function validateBlock(input: CrewCalendarBlockInput) {
+  assertFutureOrToday(input.bookingDate, "Block");
   assertSession(input.session);
   const title = input.title.trim();
   const note = input.note?.trim() || null;
   if (title.length < 2 || title.length > 100 || (note && note.length > 1000)) {
     throw new CrewBookingError("Enter a shorter block title or note.", "invalid");
   }
-
-  return runRpc<string>("create_studio_calendar_block", {
-    p_booking_date: input.bookingDate,
-    p_session: input.session,
-    p_title: title,
-    p_note: note,
-  });
+  return { title, note };
 }
 
-export async function rescheduleCrewCalendarBlock(
-  id: string,
-  input: CrewCalendarBlockInput,
-): Promise<boolean> {
+async function replaceBlockSlots(transaction: Transaction, blockId: string, bookingDate: string, session: BookingSession) {
+  await transaction.execute({ sql: "delete from studio_booking_slots where block_id = ?", args: [blockId] });
+  for (const slot of slotsForSession(session)) {
+    await transaction.execute({ sql: "insert into studio_booking_slots (block_id, booking_date, slot, created_at) values (?, ?, ?, ?)", args: [blockId, bookingDate, slot, nowIso()] });
+  }
+}
+
+export async function createCrewCalendarBlock(input: CrewCalendarBlockInput): Promise<string> {
+  const { title, note } = validateBlock(input);
+  const client = getTursoClient(requireConfig());
+  const transaction = await client.transaction("write");
+  const id = randomUUID();
+  const createdAt = nowIso();
+  try {
+    await transaction.execute({ sql: "insert into studio_calendar_blocks (id, booking_date, session, title, note, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?)", args: [id, input.bookingDate, input.session, title, note, createdAt, createdAt] });
+    await replaceBlockSlots(transaction, id, input.bookingDate, input.session);
+    await transaction.commit();
+    return id;
+  } catch (error) {
+    await rollbackQuietly(transaction);
+    if (isConstraintError(error)) throw new CrewBookingError("That session is no longer available. Choose another time.", "conflict");
+    throw new CrewBookingError("The booking service could not complete that request.", "upstream");
+  } finally {
+    client.close();
+  }
+}
+
+export async function rescheduleCrewCalendarBlock(id: string, input: CrewCalendarBlockInput): Promise<boolean> {
   assertUuid(id);
-  assertDate(input.bookingDate);
-  assertSession(input.session);
-  const title = input.title.trim();
-  const note = input.note?.trim() || null;
-  if (title.length < 2 || title.length > 100 || (note && note.length > 1000)) {
-    throw new CrewBookingError("Enter a shorter block title or note.", "invalid");
+  const { title, note } = validateBlock(input);
+  const client = getTursoClient(requireConfig());
+  const transaction = await client.transaction("write");
+  try {
+    const current = await transaction.execute({ sql: "select id from studio_calendar_blocks where id = ? limit 1", args: [id] });
+    if (!current.rows[0]) {
+      await transaction.commit();
+      return false;
+    }
+    await replaceBlockSlots(transaction, id, input.bookingDate, input.session);
+    await transaction.execute({ sql: "update studio_calendar_blocks set booking_date = ?, session = ?, title = ?, note = ?, updated_at = ? where id = ?", args: [input.bookingDate, input.session, title, note, nowIso(), id] });
+    await transaction.commit();
+    return true;
+  } catch (error) {
+    await rollbackQuietly(transaction);
+    if (isConstraintError(error)) throw new CrewBookingError("That session is no longer available. Choose another time.", "conflict");
+    throw new CrewBookingError("The booking service could not complete that request.", "upstream");
+  } finally {
+    client.close();
   }
-
-  return runRpc<boolean>("reschedule_studio_calendar_block", {
-    p_block_id: id,
-    p_booking_date: input.bookingDate,
-    p_session: input.session,
-    p_title: title,
-    p_note: note,
-  });
 }
 
 export async function cancelCrewCalendarBlock(id: string): Promise<boolean> {
   assertUuid(id);
-  return runRpc<boolean>("cancel_studio_calendar_block", { p_block_id: id });
+  const client = getTursoClient(requireConfig());
+  const transaction = await client.transaction("write");
+  try {
+    const result = await transaction.execute({ sql: "delete from studio_calendar_blocks where id = ?", args: [id] });
+    await transaction.commit();
+    return result.rowsAffected === 1;
+  } catch {
+    await rollbackQuietly(transaction);
+    throw new CrewBookingError("The booking service could not complete that request.", "upstream");
+  } finally {
+    client.close();
+  }
 }
 
-/** A ready-to-open mail draft; the crew still sends it from the shared inbox. */
-export function createClientEmailDraft(
-  booking: CrewBooking,
-): CrewClientEmailDraft {
+export function createClientEmailDraft(booking: CrewBooking): CrewClientEmailDraft {
   if (booking.kind !== "booking" || !booking.email || !booking.name) {
     throw new CrewBookingError("Only client bookings can receive email.", "invalid");
   }
-
   const subject = `Studio GQ booking — ${booking.bookingDate}`;
   const body = [
     `Hi ${booking.name},`,
@@ -436,7 +461,6 @@ export function createClientEmailDraft(
     "Studio GQ",
     CREW_CONTACT_EMAIL,
   ].join("\n");
-
   return {
     to: booking.email,
     subject,

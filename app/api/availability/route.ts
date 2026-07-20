@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { monthSchema } from "@/lib/booking-schema";
 import {
   getOccupiedDates,
-  getSupabaseConfig,
-  SupabaseBookingError,
-} from "@/lib/supabase-bookings";
+  TursoBookingError,
+} from "@/lib/turso-bookings";
+import { getTursoConfig } from "@/lib/turso";
 
 function currentMonth() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
   }
 
   const month = parsedMonth.data;
-  const config = getSupabaseConfig();
+  const config = getTursoConfig();
   if (!config) {
     return NextResponse.json(
       { configured: false, month, occupied: [] },
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         message:
-          error instanceof SupabaseBookingError
+          error instanceof TursoBookingError
             ? error.message
             : "Availability could not be loaded.",
         configured: true,
@@ -71,4 +71,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

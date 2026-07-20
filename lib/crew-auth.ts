@@ -1,26 +1,12 @@
 import { cookies } from "next/headers";
 
-const SUPABASE_TIMEOUT_MS = 8_000;
-
 export const CREW_SESSION_COOKIE = "studio_gq_crew_session";
 export const CREW_SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
 
 type CrewAuthConfig = {
-  url: string;
-  publicKey: string;
-  serviceRoleKey: string;
   crewEmail: string;
-};
-
-type SupabaseAuthUser = {
-  id: string;
-  email?: string | null;
-};
-
-type SupabaseSignInResponse = {
-  access_token?: string;
-  expires_in?: number;
-  user?: SupabaseAuthUser;
+  password: string;
+  sessionSecret: string;
 };
 
 export type CrewSession = {
@@ -34,8 +20,7 @@ export type CrewAuthState =
 
 function configuredValue(value: string | undefined) {
   const trimmed = value?.trim();
-  if (!trimmed || trimmed.startsWith("your-")) return null;
-  return trimmed;
+  return trimmed && !trimmed.startsWith("your-") ? trimmed : null;
 }
 
 function normalizeEmail(value: string) {
@@ -46,91 +31,96 @@ function isSafePortalPath(value: string) {
   return value.startsWith("/") && !value.startsWith("//") && !value.includes("\\");
 }
 
-/**
- * Resolves all server-only values required for the shared crew identity.
- * This function is intentionally lazy so builds work without production env vars.
- */
-export function getCrewAuthState(): CrewAuthState {
-  const url = configuredValue(
-    process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL,
-  )?.replace(/\/$/, "");
-  const publicKey = configuredValue(
-    process.env.SUPABASE_PUBLISHABLE_KEY ??
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
-      process.env.SUPABASE_ANON_KEY,
+function encode(value: string) {
+  return new TextEncoder().encode(value);
+}
+
+function base64Url(bytes: Uint8Array) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
+}
+
+function fromBase64Url(value: string) {
+  const normalized = value.replaceAll("-", "+").replaceAll("_", "/");
+  const padded = normalized + "=".repeat((4 - (normalized.length % 4)) % 4);
+  return new Uint8Array(atob(padded).split("").map((character) => character.charCodeAt(0)));
+}
+
+function equalBytes(left: Uint8Array, right: Uint8Array) {
+  if (left.length !== right.length) return false;
+  let difference = 0;
+  for (let index = 0; index < left.length; index += 1) difference |= left[index] ^ right[index];
+  return difference === 0;
+}
+
+async function hmac(value: string, secret: string) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
   );
-  const serviceRoleKey = configuredValue(process.env.SUPABASE_SERVICE_ROLE_KEY);
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, encode(value)));
+}
+
+async function passwordDigest(value: string) {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", encode(value)));
+}
+
+/** Resolves the one shared crew identity; all settings are server-only. */
+export function getCrewAuthState(): CrewAuthState {
   const rawCrewEmail = configuredValue(process.env.CREW_PORTAL_EMAIL);
+  const password = configuredValue(process.env.CREW_PORTAL_PASSWORD);
+  const sessionSecret = configuredValue(process.env.CREW_SESSION_SECRET);
 
-  if (!url || !publicKey || !serviceRoleKey || !rawCrewEmail) {
+  if (!rawCrewEmail || !password || !sessionSecret) {
     return {
       state: "unconfigured",
-      reason:
-        "Crew portal access is not configured yet. Add the Supabase and crew login settings to the server environment.",
-    };
-  }
-
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== "https:" && parsed.hostname !== "localhost") {
-      throw new Error("Unsupported Supabase URL");
-    }
-  } catch {
-    return {
-      state: "unconfigured",
-      reason: "The configured Supabase URL is not valid.",
+      reason: "Add the shared crew email, password and session secret to the server environment.",
     };
   }
 
   const crewEmail = normalizeEmail(rawCrewEmail);
   if (!/^\S+@\S+\.\S+$/.test(crewEmail)) {
-    return {
-      state: "unconfigured",
-      reason: "The configured crew login email is not valid.",
-    };
+    return { state: "unconfigured", reason: "The configured crew login email is not valid." };
   }
-
-  return { state: "configured", config: { url, publicKey, serviceRoleKey, crewEmail } };
+  if (sessionSecret.length < 32) {
+    return { state: "unconfigured", reason: "The crew session secret must be at least 32 characters." };
+  }
+  return { state: "configured", config: { crewEmail, password, sessionSecret } };
 }
 
-function authHeaders(config: CrewAuthConfig, accessToken?: string) {
-  return {
-    apikey: config.publicKey,
-    Authorization: `Bearer ${accessToken ?? config.publicKey}`,
-    "Content-Type": "application/json",
-  };
+async function sessionToken(session: CrewSession, config: CrewAuthConfig) {
+  const expiresAt = Math.floor(Date.now() / 1000) + CREW_SESSION_MAX_AGE_SECONDS;
+  const payload = base64Url(encode(JSON.stringify({ email: session.email, expiresAt })));
+  const signature = base64Url(await hmac(payload, config.sessionSecret));
+  return `${payload}.${signature}`;
 }
 
-async function readJson<T>(response: Response): Promise<T | null> {
+async function verifySessionToken(token: string, config: CrewAuthConfig): Promise<CrewSession | null> {
+  const [payload, signature, extra] = token.split(".");
+  if (!payload || !signature || extra) return null;
+  let data: { email?: unknown; expiresAt?: unknown };
   try {
-    return (await response.json()) as T;
+    data = JSON.parse(new TextDecoder().decode(fromBase64Url(payload))) as { email?: unknown; expiresAt?: unknown };
   } catch {
     return null;
   }
-}
-
-export async function verifyCrewAccessToken(
-  config: CrewAuthConfig,
-  accessToken: string,
-): Promise<CrewSession | null> {
-  if (!accessToken || accessToken.length > 8_000) return null;
-
+  const email = typeof data.email === "string" ? normalizeEmail(data.email) : "";
+  const expiresAt = Number(data.expiresAt);
+  if (!email || !Number.isInteger(expiresAt) || expiresAt <= Math.floor(Date.now() / 1000)) return null;
+  if (email !== config.crewEmail) return null;
+  const expected = await hmac(payload, config.sessionSecret);
+  let actual: Uint8Array;
   try {
-    const response = await fetch(`${config.url}/auth/v1/user`, {
-      headers: authHeaders(config, accessToken),
-      cache: "no-store",
-      signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS),
-    });
-    if (!response.ok) return null;
-
-    const user = await readJson<SupabaseAuthUser>(response);
-    const email = user?.email ? normalizeEmail(user.email) : "";
-    if (!user?.id || email !== config.crewEmail) return null;
-
-    return { userId: user.id, email };
+    actual = fromBase64Url(signature);
   } catch {
     return null;
   }
+  if (!equalBytes(expected, actual)) return null;
+  return { userId: config.crewEmail, email: config.crewEmail };
 }
 
 export async function signInCrew(
@@ -138,48 +128,20 @@ export async function signInCrew(
   password: string,
 ): Promise<{ session: CrewSession; accessToken: string; maxAge: number } | null> {
   if (!password || password.length > 1_024) return null;
-
-  try {
-    const response = await fetch(`${config.url}/auth/v1/token?grant_type=password`, {
-      method: "POST",
-      headers: authHeaders(config),
-      body: JSON.stringify({ email: config.crewEmail, password }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS),
-    });
-    if (!response.ok) return null;
-
-    const result = await readJson<SupabaseSignInResponse>(response);
-    const accessToken = result?.access_token;
-    if (!accessToken) return null;
-
-    const session = await verifyCrewAccessToken(config, accessToken);
-    if (!session) return null;
-
-    const expiresIn = Number(result.expires_in);
-    const maxAge = Number.isFinite(expiresIn)
-      ? Math.max(60, Math.min(CREW_SESSION_MAX_AGE_SECONDS, Math.floor(expiresIn)))
-      : CREW_SESSION_MAX_AGE_SECONDS;
-
-    return { session, accessToken, maxAge };
-  } catch {
-    return null;
-  }
+  const [provided, expected] = await Promise.all([passwordDigest(password), passwordDigest(config.password)]);
+  if (!equalBytes(provided, expected)) return null;
+  const session = { userId: config.crewEmail, email: config.crewEmail };
+  return { session, accessToken: await sessionToken(session, config), maxAge: CREW_SESSION_MAX_AGE_SECONDS };
 }
 
 /** Returns the verified crew session for server-rendered portal routes. */
 export async function getCrewSession(): Promise<CrewSession | null> {
   const auth = getCrewAuthState();
   if (auth.state !== "configured") return null;
-
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get(CREW_SESSION_COOKIE)?.value;
-  if (!accessToken) return null;
-
-  return verifyCrewAccessToken(auth.config, accessToken);
+  const token = (await cookies()).get(CREW_SESSION_COOKIE)?.value;
+  return token ? verifySessionToken(token, auth.config) : null;
 }
 
-/** Builds a safe login destination for future protected crew portal routes. */
 export function crewLoginUrl(nextPath = "/crew") {
   const safeNextPath = isSafePortalPath(nextPath) ? nextPath : "/crew";
   return `/crew/login?next=${encodeURIComponent(safeNextPath)}`;

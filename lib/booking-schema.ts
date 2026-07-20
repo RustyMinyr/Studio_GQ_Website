@@ -100,15 +100,21 @@ export function currentJohannesburgDate(now = new Date()) {
 export const bookingSchema = z
   .object({
     requestId: z.string().uuid("The booking request could not be identified."),
-    date: z
-      .string()
-      .trim()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a booking date.")
-      .refine(isCalendarDate, "Choose a valid booking date.")
-      .refine(
-        (value) => value >= currentJohannesburgDate(),
-        "Choose today or a future date.",
-      ),
+    dates: z
+      .array(
+        z
+          .string()
+          .trim()
+          .regex(/^\d{4}-\d{2}-\d{2}$/, "Choose a booking date.")
+          .refine(isCalendarDate, "Choose a valid booking date.")
+          .refine(
+            (value) => value >= currentJohannesburgDate(),
+            "Choose today or a future date.",
+          ),
+      )
+      .min(1, "Choose at least one booking date.")
+      .max(14, "Choose up to 14 booking dates per enquiry.")
+      .refine((dates) => new Set(dates).size === dates.length, "Choose each date once."),
     session: z.enum(bookingSessionValues, {
       errorMap: () => ({ message: "Choose a booking session." }),
     }),

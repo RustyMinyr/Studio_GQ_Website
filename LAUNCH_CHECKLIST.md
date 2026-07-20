@@ -2,26 +2,27 @@
 
 The website is designed to remain in safe preview mode until the live booking database and production domain are connected. Complete these steps before public launch.
 
-## 1. Connect Supabase
+## 1. Connect Turso
 
-1. Create or select the Studio GQ Supabase project.
-2. Apply the migrations in order:
-   - `202607160001_create_studio_bookings.sql`
-   - `202607160002_harden_booking_lifecycle.sql`
-   - `202607170001_add_crew_booking_management.sql`
-3. Add these public runtime values to the deployed site:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-4. Add these server-only runtime values to the deployed site:
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `SUPABASE_PUBLISHABLE_KEY`
+1. Create the `studio-gq-bookings` database in Turso (Mumbai region).
+2. Add these server-only runtime values to Vercel and `.env.local`:
+   - `TURSO_DATABASE_URL`
+   - `TURSO_AUTH_TOKEN`
    - `CREW_PORTAL_EMAIL`
-5. Create the shared crew identity in Supabase Auth using the same email as `CREW_PORTAL_EMAIL`.
-6. Confirm that `/api/availability` reports `configured: true`.
-7. Submit one test booking, verify the booking and both reserved slots in Supabase, then cancel the test booking and verify that its slots are released.
+   - `CREW_PORTAL_PASSWORD`
+   - `CREW_SESSION_SECRET`
+3. Run `npm run turso:migrate` once and confirm it succeeds.
+4. Confirm that `/api/availability` reports `configured: true`.
+5. Submit one test booking, verify the booking and both reserved slots in Turso, then cancel the test booking and verify that its slots are released.
 
-Never expose the service-role key in a `NEXT_PUBLIC_` variable, browser code, screenshots, or support messages.
+## 1.1 Enable booking notifications
+
+1. Add Resend to the Vercel project and verify the `studiogq.co.za` sending domain.
+2. Add `RESEND_API_KEY` and `BOOKING_FROM_EMAIL` as server-only environment variables.
+3. Set `BOOKING_NOTIFICATION_EMAIL=booking@studiogq.co.za` in every deployment environment.
+4. Submit a test booking and confirm that the Studio GQ notification email arrives.
+
+Never expose the Turso token, crew password, or session secret in a `NEXT_PUBLIC_` variable, browser code, screenshots, or support messages.
 
 ## 2. Confirm the operating workflow
 
