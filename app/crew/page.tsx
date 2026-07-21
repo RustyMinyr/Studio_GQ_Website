@@ -21,7 +21,7 @@ export default async function CrewPortalPage() {
 
   return (
     <div className="min-h-screen bg-[#f7f7f5]">
-      <CrewPortalHeader current="dashboard" />
+      <CrewPortalHeader current="bookings" />
       <CrewDashboard dashboard={dashboard} />
     </div>
   );

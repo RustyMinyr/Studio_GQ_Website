@@ -3,13 +3,12 @@ import Link from "next/link";
 import { CrewSignOut } from "./CrewSignOut";
 
 type CrewPortalHeaderProps = {
-  current: "dashboard" | "calendar" | "bookings";
+  current: "bookings" | "calendar";
 };
 
 const items = [
-  { href: "/crew", label: "Overview", key: "dashboard" },
+  { href: "/crew", label: "Bookings", key: "bookings" },
   { href: "/crew/calendar", label: "Calendar", key: "calendar" },
-  { href: "/crew#bookings", label: "Bookings", key: "bookings" },
 ] as const;
 
 export function CrewPortalHeader({ current }: CrewPortalHeaderProps) {

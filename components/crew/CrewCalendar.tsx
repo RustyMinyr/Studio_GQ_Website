@@ -43,7 +43,7 @@ export function CrewCalendar({ bookings, month, year }: CrewCalendarProps) {
           </h1>
         </div>
         <Link className="inline-flex min-h-11 items-center border border-[#050505] px-4 text-xs font-semibold tracking-[.12em] uppercase transition-colors hover:bg-[#050505] hover:text-white" href="/crew">
-          Overview <span aria-hidden="true" className="ml-4">→</span>
+          Bookings <span aria-hidden="true" className="ml-4">→</span>
         </Link>
       </div>
 
