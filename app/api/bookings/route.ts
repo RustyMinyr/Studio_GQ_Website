@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
     ]);
     return NextResponse.json(
       {
-        message: "Your studio booking has been received. The Studio GQ team will confirm availability shortly.",
+        message: "Your booking has been submitted. A member of the Studio GQ team will be in touch shortly.",
         bookingGroupId: bookingId,
         notification: notification.reason,
         pendingEmail: pendingEmail.reason,

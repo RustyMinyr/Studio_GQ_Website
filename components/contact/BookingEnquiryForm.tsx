@@ -268,7 +268,7 @@ export function BookingEnquiryForm() {
       resetForm();
       setSubmission({
         kind: "success",
-        message: result.message ?? "Your studio booking has been received.",
+        message: result.message ?? "Your booking has been submitted. A member of the Studio GQ team will be in touch shortly.",
       });
       focusFeedback();
     } catch {
