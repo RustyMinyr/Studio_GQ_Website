@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import { BookingCalendar } from "@/components/contact/BookingCalendar";
 import {
@@ -71,6 +71,12 @@ export function BookingEnquiryForm() {
   const feedbackRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const requestIdRef = useRef<string | null>(null);
+  const successDialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = successDialogRef.current;
+    if (submission.kind === "success" && dialog && !dialog.open) dialog.showModal();
+  }, [submission]);
 
   const handleConfigurationChange = useCallback((configured: boolean | null) => {
     setCalendarConfigured(configured);
@@ -281,12 +287,11 @@ export function BookingEnquiryForm() {
   }
 
   const isSubmitting = submission.kind === "submitting";
-  const feedbackMessage =
-    submission.kind === "error" || submission.kind === "success"
-      ? submission.message
-      : null;
+  const feedbackMessage = submission.kind === "error" ? submission.message : null;
+  const successMessage = submission.kind === "success" ? submission.message : null;
 
   return (
+    <>
     <form
       aria-busy={isSubmitting}
       className="space-y-6"
@@ -510,5 +515,36 @@ export function BookingEnquiryForm() {
       </div>
       </fieldset>
     </form>
+
+    <dialog
+      aria-labelledby="booking-success-title"
+      className="booking-success-dialog"
+      onClose={() => setSubmission({ kind: "idle" })}
+      ref={successDialogRef}
+    >
+      <div className="booking-success-dialog__panel">
+        <button
+          aria-label="Close booking confirmation"
+          className="booking-success-dialog__close"
+          onClick={() => successDialogRef.current?.close()}
+          type="button"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+        <p className="text-xs font-medium tracking-[.2em] text-[#a7a7a3] uppercase">Booking submitted</p>
+        <h2 className="mt-4 text-3xl font-normal tracking-[-.045em] sm:text-4xl" id="booking-success-title">
+          Thank you.
+        </h2>
+        <p className="mt-4 text-base leading-7 text-[#d5d5d2]">{successMessage}</p>
+        <button
+          className="mt-8 min-h-12 w-full bg-white px-5 text-xs font-semibold tracking-[.14em] text-[#050505] uppercase transition-colors hover:bg-[#e7e7e4]"
+          onClick={() => successDialogRef.current?.close()}
+          type="button"
+        >
+          Close
+        </button>
+      </div>
+    </dialog>
+    </>
   );
 }
