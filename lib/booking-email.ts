@@ -161,7 +161,7 @@ export async function notifyStudioOfBooking(booking: BookingFormData, bookingGro
     `Phone: ${booking.phone}`,
     "",
     "Production details:",
-    booking.message,
+    booking.message || "Not provided",
     "",
     `Booking reference: ${bookingGroupId}`,
   ].join("\n");
@@ -172,7 +172,7 @@ export async function notifyStudioOfBooking(booking: BookingFormData, bookingGro
     text,
     replyTo: booking.email,
     idempotencyKey: `studio-gq-booking-${booking.requestId}`,
-    html: `<main style="font-family:Arial,sans-serif;color:#111;line-height:1.5"><h1 style="font-size:24px">New Studio GQ booking enquiry</h1><h2 style="font-size:14px">Requested dates</h2><ul>${htmlDates}</ul><p><strong>Session:</strong> ${escapeHtml(sessionLabel(booking.session))}</p><p><strong>Additional items:</strong> ${escapeHtml(extras)}</p><hr><p><strong>Name:</strong> ${escapeHtml(booking.name)}<br><strong>Company:</strong> ${escapeHtml(booking.company || "Not specified")}<br><strong>Email:</strong> ${escapeHtml(booking.email)}<br><strong>Phone:</strong> ${escapeHtml(booking.phone)}</p><h2 style="font-size:14px">Production details</h2><p style="white-space:pre-wrap">${escapeHtml(booking.message)}</p><p style="color:#666;font-size:12px">Booking reference: ${escapeHtml(bookingGroupId)}</p></main>`,
+    html: `<main style="font-family:Arial,sans-serif;color:#111;line-height:1.5"><h1 style="font-size:24px">New Studio GQ booking enquiry</h1><h2 style="font-size:14px">Requested dates</h2><ul>${htmlDates}</ul><p><strong>Session:</strong> ${escapeHtml(sessionLabel(booking.session))}</p><p><strong>Additional items:</strong> ${escapeHtml(extras)}</p><hr><p><strong>Name:</strong> ${escapeHtml(booking.name)}<br><strong>Company:</strong> ${escapeHtml(booking.company || "Not specified")}<br><strong>Email:</strong> ${escapeHtml(booking.email)}<br><strong>Phone:</strong> ${escapeHtml(booking.phone)}</p><h2 style="font-size:14px">Production details</h2><p style="white-space:pre-wrap">${escapeHtml(booking.message || "Not provided")}</p><p style="color:#666;font-size:12px">Booking reference: ${escapeHtml(bookingGroupId)}</p></main>`,
   });
 }
 

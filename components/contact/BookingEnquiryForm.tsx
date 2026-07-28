@@ -145,7 +145,7 @@ export function BookingEnquiryForm() {
       `Phone: ${payload.phone}`,
       "",
       "About the production:",
-      payload.message,
+      payload.message || "Not provided",
     ].join("\n");
     const subject = `Studio GQ booking enquiry — ${payload.dates.length} day${payload.dates.length === 1 ? "" : "s"}`;
 
@@ -443,7 +443,8 @@ export function BookingEnquiryForm() {
 
       <div>
         <label className="mb-2 block text-sm text-white" htmlFor="message">
-          Tell us about your production <span aria-hidden="true">*</span>
+          Tell us about your production{" "}
+          <span className="text-[#a7a7a3]">(optional)</span>
         </label>
         <textarea
           aria-describedby={
@@ -454,7 +455,6 @@ export function BookingEnquiryForm() {
           id="message"
           maxLength={2000}
           name="message"
-          required
         />
         <p
           className="mt-3 max-w-2xl text-sm leading-6 text-[#a7a7a3]"

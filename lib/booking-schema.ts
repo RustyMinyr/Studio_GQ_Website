@@ -126,8 +126,9 @@ export const bookingSchema = z
     message: z
       .string()
       .trim()
-      .min(20, "Tell us a little more about your production.")
-      .max(2000, "Keep your message under 2,000 characters."),
+      .max(2000, "Keep your message under 2,000 characters.")
+      .optional()
+      .default(""),
     website: z.string().trim().max(160).optional(),
   })
   .strict();

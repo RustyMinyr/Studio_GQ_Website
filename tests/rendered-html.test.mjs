@@ -160,6 +160,8 @@ test("renders the complete accessible booking portal", async () => {
   assert.match(html, /Production, under one roof/i);
   assert.match(html, /Production support/i);
   assert.match(html, /name="website"/i);
+  assert.match(html, /Tell us about your production[\s\S]*\(optional\)/i);
+  assert.doesNotMatch(html, /<textarea[^>]*name="message"[^>]*required/i);
   assert.match(html, /SUBMIT BOOKING/i);
   assert.doesNotMatch(html, /CONTINUE BOOKING ENQUIRY/i);
 });
@@ -205,6 +207,14 @@ test("returns graceful responses while Turso is unconfigured", async () => {
     const booking = await bookingResponse.json();
     assert.equal(booking.configured, false);
     assert.match(booking.message, /not configured/i);
+
+    const optionalMessageResponse = await fetchSite(
+      "/api/bookings",
+      bookingRequest({ ...validBooking, requestId: "8d2b6343-f918-4a93-84be-40f57127dfd9", message: "" }, "192.0.2.121"),
+    );
+    assert.equal(optionalMessageResponse.status, 503);
+    const optionalMessage = await optionalMessageResponse.json();
+    assert.equal(optionalMessage.configured, false);
   });
 });
 
