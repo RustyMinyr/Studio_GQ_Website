@@ -126,6 +126,7 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.match(html, />Booking<\/a>/i);
   assert.match(html, /bookings@studiogq\.co\.za/i);
   assert.match(html, /\+27 84 515 0956/i);
+  assert.match(html, /<\/header>\s*<div[^>]*id="mobile-navigation"/i);
 });
 
 test("renders the complete accessible booking portal", async () => {
@@ -390,4 +391,11 @@ test("uses canonical social metadata and optimized image assets", async () => {
 
   const booking = await (await fetchSite("/booking", { headers: { accept: "text/html" } })).text();
   assert.match(booking, /<meta property="og:url" content="https:\/\/www\.studiogq\.co\.za\/booking"/i);
+});
+
+test("keeps the mobile navigation above the page and outside the header layer", async () => {
+  const styles = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+
+  assert.match(styles, /\.mobile-menu\s*\{[^}]*position:\s*fixed[^}]*z-index:\s*90[^}]*color:\s*var\(--white\)/i);
+  assert.match(styles, /\.mobile-menu__nav\s*\{[^}]*min-height:\s*100dvh/i);
 });
