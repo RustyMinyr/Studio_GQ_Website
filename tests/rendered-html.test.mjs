@@ -65,6 +65,33 @@ async function withTursoEnvironment(values, callback) {
   }
 }
 
+async function withEmailEnvironment(values, callback) {
+  const previousApiKey = process.env.RESEND_API_KEY;
+  const previousFrom = process.env.BOOKING_FROM_EMAIL;
+  const previousNotification = process.env.BOOKING_NOTIFICATION_EMAIL;
+
+  if (values) {
+    process.env.RESEND_API_KEY = values.apiKey;
+    process.env.BOOKING_FROM_EMAIL = values.from;
+    process.env.BOOKING_NOTIFICATION_EMAIL = values.to;
+  } else {
+    delete process.env.RESEND_API_KEY;
+    delete process.env.BOOKING_FROM_EMAIL;
+    delete process.env.BOOKING_NOTIFICATION_EMAIL;
+  }
+
+  try {
+    return await callback();
+  } finally {
+    if (previousApiKey === undefined) delete process.env.RESEND_API_KEY;
+    else process.env.RESEND_API_KEY = previousApiKey;
+    if (previousFrom === undefined) delete process.env.BOOKING_FROM_EMAIL;
+    else process.env.BOOKING_FROM_EMAIL = previousFrom;
+    if (previousNotification === undefined) delete process.env.BOOKING_NOTIFICATION_EMAIL;
+    else process.env.BOOKING_NOTIFICATION_EMAIL = previousNotification;
+  }
+}
+
 const validBooking = {
   requestId: "9a5364fd-2a92-4ee5-b7c3-275f0129ba47",
   dates: ["2099-02-20"],
@@ -78,7 +105,59 @@ const validBooking = {
   website: "",
 };
 
+const validQuickEnquiry = {
+  kind: "quick_enquiry",
+  requestId: "74a3b718-cf64-4ef9-a137-ff3629e23bcf",
+  name: "Amina Jacobs",
+  email: "amina@example.com",
+  phone: "+27 82 555 0199",
+  message: "I would like to discuss a portrait production.",
+  website: "",
+};
+
+const serviceRoutes = [
+  "/services/studio-hire",
+  "/services/photography-film",
+  "/services/podcast-studio",
+  "/services/greenscreen-infinity-curve",
+  "/services/equipment-production-support",
+];
+
+const resourceRoutes = [
+  "/resources/studio-lighting-basics",
+  "/resources/stills-vs-video-lighting",
+  "/resources/clean-interview-sound",
+  "/resources/podcast-studio-setup-guide",
+  "/resources/greenscreen-shoot-preparation",
+  "/resources/infinity-curve-shooting-guide",
+  "/resources/half-day-vs-full-day-studio-hire",
+  "/resources/studio-production-day-checklist",
+];
+
+const resourceImages = [
+  "learn-lighting-demonstration.webp",
+  "learn-camera-monitor.webp",
+  "learn-portrait-setup.webp",
+  "learn-conversation-space.webp",
+  "learn-softbox-pair.webp",
+  "learn-infinity-curve.webp",
+  "learn-group-lighting.webp",
+  "learn-workshop-wide.webp",
+];
+
 function bookingRequest(body, ip) {
+  return {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "http://localhost",
+      "x-forwarded-for": ip,
+    },
+    body: JSON.stringify(body),
+  };
+}
+
+function enquiryRequest(body, ip) {
   return {
     method: "POST",
     headers: {
@@ -100,6 +179,37 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.match(html, /<title>Studio GQ \| Film, Photography &amp; Podcast Studio in Gqeberha<\/title>/i);
   assert.match(html, /<main[\s>]/i);
   assert.match(html, /<h1[\s>]/i);
+  const primaryNav = html.match(
+    /<nav[^>]*aria-label="Primary navigation"[^>]*>[\s\S]*?<\/nav>/i,
+  )?.[0];
+  assert.ok(primaryNav, "homepage should render a primary navigation landmark");
+  for (const href of [
+    "/",
+    "/#services",
+    "/#about",
+    "/#equipment",
+    "/#learn",
+    "/#faq",
+    "/#contact",
+  ]) {
+    assert.match(primaryNav, new RegExp(`href="${href.replaceAll("/", "\\/")}"`, "i"));
+  }
+  assert.doesNotMatch(primaryNav, /href="\/services"/i);
+  assert.doesNotMatch(primaryNav, /href="\/resources"/i);
+  const expectedNavOrder = [
+    'href="/"',
+    'href="/#services"',
+    'href="/#about"',
+    'href="/#equipment"',
+    'href="/#learn"',
+    'href="/#faq"',
+    'href="/#contact"',
+  ];
+  const navPositions = expectedNavOrder.map((href) => primaryNav.indexOf(href));
+  assert.ok(
+    navPositions.every((position, index) => position >= 0 && (index === 0 || position > navPositions[index - 1])),
+    "primary navigation should follow the homepage section order",
+  );
   assert.match(html, /<form[\s>]/i);
   assert.match(html, /<label[^>]*for="quick-name"/i);
   assert.match(html, /<label[^>]*for="quick-email"/i);
@@ -124,6 +234,29 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.match(html, /href="\/privacy"/i);
   assert.match(html, /href="\/booking"/i);
   assert.match(html, />Booking<\/a>/i);
+  assert.match(html, /id="learn"/i);
+  assert.match(html, /href="\/services"/i);
+  assert.match(html, /href="\/resources"/i);
+  assert.match(html, /Explore all services/i);
+  assert.match(html, /Explore Learn/i);
+  assert.match(html, /View all/i);
+  assert.ok(
+    html.indexOf('id="services"') < html.indexOf('id="about"'),
+    "services should render before about on the one-page homepage",
+  );
+  assert.match(html, /free practical workshops/i);
+  assert.match(html, /FilmHouse/i);
+  assert.match(html, /practical one-day/i);
+  assert.match(html, /first one coming soon/i);
+  assert.match(html, /Register interest/i);
+  assert.match(html, /<dialog[^>]*aria-labelledby="home-workshop-dialog-title"/i);
+  assert.doesNotMatch(html, /Studio%20GQ%20workshop%20interest/i);
+  for (const route of serviceRoutes) {
+    assert.match(html, new RegExp(`href="${route.replaceAll("/", "\\/")}"`, "i"));
+  }
+  for (const route of resourceRoutes.slice(0, 3)) {
+    assert.match(html, new RegExp(`href="${route.replaceAll("/", "\\/")}"`, "i"));
+  }
   assert.match(html, /bookings@studiogq\.co\.za/i);
   assert.match(html, /\+27 84 515 0956/i);
   assert.match(html, /<\/header>\s*<div[^>]*id="mobile-navigation"/i);
@@ -138,6 +271,7 @@ test("renders the complete accessible booking portal", async () => {
   const html = await response.text();
   assert.match(html, /<h1[\s>]/i);
   assert.match(html, /page-hero page-hero--dark/i);
+  assert.doesNotMatch(html, /page-hero--compact/i);
   assert.match(html, /<form[\s>]/i);
   assert.match(html, /<label[^>]*for="name"/i);
   assert.match(html, /<label[^>]*for="email"/i);
@@ -275,6 +409,62 @@ test("ships safe crew calendar holds, blocks and booking controls", async () => 
   assert.match(footer, /href="\/crew"/i);
 });
 
+test("ships the private, replay-resistant Forjdeck booking bridge", async () => {
+  const [auth, bookingsRoute, confirmRoute, crewBookings, envExample] =
+    await Promise.all([
+      readFile(
+        new URL("../lib/forjdeck-integration-auth.ts", import.meta.url),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../app/api/integrations/forjdeck/bookings/route.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(
+        new URL(
+          "../app/api/integrations/forjdeck/bookings/[id]/confirm/route.ts",
+          import.meta.url,
+        ),
+        "utf8",
+      ),
+      readFile(new URL("../lib/crew-bookings.ts", import.meta.url), "utf8"),
+      readFile(new URL("../.env.example", import.meta.url), "utf8"),
+    ]);
+
+  assert.match(auth, /x-forjdeck-version/i);
+  assert.match(auth, /x-forjdeck-organization-id/i);
+  assert.match(auth, /x-forjdeck-timestamp/i);
+  assert.match(auth, /x-forjdeck-nonce/i);
+  assert.match(auth, /x-forjdeck-content-sha256/i);
+  assert.match(auth, /x-forjdeck-signature/i);
+  assert.match(auth, /createHmac\("sha256"/i);
+  assert.match(auth, /timingSafeEqual/i);
+  assert.match(auth, /MAX_CLOCK_SKEW_SECONDS = 5 \* 60/i);
+  assert.match(auth, /usedNonces\.has/i);
+  assert.match(auth, /organizationId !== config\.allowedOrganizationId/i);
+  assert.match(bookingsRoute, /getForjdeckBookingYear/i);
+  assert.match(bookingsRoute, /force-dynamic/i);
+  assert.match(confirmRoute, /expectedUpdatedAt/i);
+  assert.match(confirmRoute, /notifyClientOfBookingConfirmation/i);
+  assert.match(confirmRoute, /transitioned:\s*false/i);
+  assert.match(confirmRoute, /reason:\s*"already_confirmed"/i);
+  assert.match(confirmRoute, /publicNotification/i);
+  assert.match(crewBookings, /booking_group_id/i);
+  assert.match(
+    crewBookings,
+    /where id = \? and status = 'pending' and updated_at = \?/i,
+  );
+  assert.match(
+    crewBookings,
+    /outcome:\s*"already_confirmed"[\s\S]*emailBooking:\s*null/i,
+  );
+  assert.match(envExample, /FORJDECK_INTEGRATION_SECRET/i);
+  assert.match(envExample, /FORJDECK_ALLOWED_ORGANIZATION_ID/i);
+});
+
 test("ships a secure UUID fallback and freezes the booking form in flight", async () => {
   const form = await readFile(
     new URL("../components/contact/BookingEnquiryForm.tsx", import.meta.url),
@@ -343,13 +533,31 @@ test("publishes canonical sitemap and robots directives", async () => {
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/privacy/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/terms/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/booking/);
+  assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/services/);
+  assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/resources/);
+  for (const route of [...serviceRoutes, ...resourceRoutes]) {
+    assert.match(
+      sitemap,
+      new RegExp(`https:\\/\\/www\\.studiogq\\.co\\.za${route.replaceAll("/", "\\/")}`),
+    );
+  }
   assert.match(robots, /Disallow: \/api\//i);
+  assert.match(robots, /Disallow: \/crew(?:\r?\n|$)/i);
   assert.match(robots, /Disallow: \/crew\//i);
   assert.match(robots, /Sitemap: https:\/\/www\.studiogq\.co\.za\/sitemap\.xml/i);
 });
 
 test("renders every public route with one main landmark and live assets", async () => {
-  const routes = ["/", "/booking", "/privacy", "/terms"];
+  const routes = [
+    "/",
+    "/booking",
+    "/privacy",
+    "/terms",
+    "/services",
+    "/resources",
+    ...serviceRoutes,
+    ...resourceRoutes,
+  ];
 
   for (const route of routes) {
     const response = await fetchSite(route, { headers: { accept: "text/html" } });
@@ -361,9 +569,204 @@ test("renders every public route with one main landmark and live assets", async 
     const html = await response.text();
     assert.equal((html.match(/<main[\s>]/gi) ?? []).length, 1, `${route} should have one main landmark`);
     assert.equal((html.match(/<h1[\s>]/gi) ?? []).length, 1, `${route} should have one h1`);
+    assert.equal(
+      (html.match(/rel="canonical"/gi) ?? []).length,
+      1,
+      `${route} should have one canonical`,
+    );
     assert.doesNotMatch(html, /Studio GQ \| Studio GQ/i);
+    assert.doesNotMatch(html, /name="robots"[^>]*noindex/i);
     assert.match(html, /studio-gq-white\.png/i);
   }
+});
+
+test("renders an in-page workshop registration on the Learn page", async () => {
+  const response = await fetchSite("/resources", { headers: { accept: "text/html" } });
+  assert.equal(response.status, 200);
+  const html = await response.text();
+  assert.match(html, /Register interest/i);
+  assert.match(html, /<dialog[^>]*aria-labelledby="resources-workshop-dialog-title"/i);
+  assert.match(html, /What would you most like to learn/i);
+  assert.doesNotMatch(html, /Studio%20GQ%20workshop%20interest/i);
+});
+
+test("publishes complete, current privacy and website terms", async () => {
+  const [privacyResponse, termsResponse] = await Promise.all([
+    fetchSite("/privacy", { headers: { accept: "text/html" } }),
+    fetchSite("/terms", { headers: { accept: "text/html" } }),
+  ]);
+  const [privacy, terms] = await Promise.all([
+    privacyResponse.text(),
+    termsResponse.text(),
+  ]);
+
+  assert.match(privacy, /Last updated: 31 July 2026/i);
+  assert.match(privacy, /Turso/i);
+  assert.match(privacy, /Resend/i);
+  assert.match(privacy, /Information Regulator/i);
+  assert.match(privacy, /up to 24 months/i);
+  assert.doesNotMatch(privacy, /when online booking is connected/i);
+  assert.doesNotMatch(privacy, /preview mode/i);
+
+  assert.match(terms, /Last updated: 31 July 2026/i);
+  assert.match(terms, /Submitting an online request does not reserve the studio/i);
+  assert.match(terms, /Payment, changes and cancellations/i);
+  assert.match(terms, /South African law/i);
+  assert.match(terms, /consumer law/i);
+});
+
+test("validates and protects website enquiry submissions", async () => {
+  const invalidResponse = await fetchSite(
+    "/api/enquiries",
+    enquiryRequest({ kind: "quick_enquiry", email: "not-an-email" }, "192.0.2.201"),
+  );
+  assert.equal(invalidResponse.status, 400);
+  assert.equal(invalidResponse.headers.get("cache-control"), "no-store");
+  const invalid = await invalidResponse.json();
+  assert.ok(invalid.errors.requestId);
+  assert.ok(invalid.errors.name);
+  assert.ok(invalid.errors.email);
+
+  const crossOriginResponse = await fetchSite("/api/enquiries", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://example.com",
+      "sec-fetch-site": "cross-site",
+      "x-forwarded-for": "192.0.2.202",
+    },
+    body: JSON.stringify(validQuickEnquiry),
+  });
+  assert.equal(crossOriginResponse.status, 403);
+
+  const honeypotResponse = await fetchSite(
+    "/api/enquiries",
+    enquiryRequest({ ...validQuickEnquiry, website: "https://spam.example" }, "192.0.2.203"),
+  );
+  assert.equal(honeypotResponse.status, 202);
+});
+
+test("returns an honest enquiry error when transactional email is unavailable", async () => {
+  await withEmailEnvironment(null, async () => {
+    const response = await fetchSite(
+      "/api/enquiries",
+      enquiryRequest(validQuickEnquiry, "192.0.2.204"),
+    );
+    assert.equal(response.status, 503);
+    const result = await response.json();
+    assert.match(result.message, /bookings@studiogq\.co\.za/i);
+  });
+});
+
+test("sends a validated enquiry to the fixed studio recipient with visitor reply-to", async () => {
+  const originalFetch = globalThis.fetch;
+  let resendRequest;
+  globalThis.fetch = async (input, init) => {
+    const url = typeof input === "string" ? input : input.url;
+    if (url === "https://api.resend.com/emails") {
+      resendRequest = { init, body: JSON.parse(String(init?.body ?? "{}")) };
+      return new Response(JSON.stringify({ id: "email_test_123" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      });
+    }
+    return originalFetch(input, init);
+  };
+
+  try {
+    await withEmailEnvironment(
+      {
+        apiKey: "re_test_private_key",
+        from: "Studio GQ <web@rooiko.com>",
+        to: "bookings@studiogq.co.za",
+      },
+      async () => {
+        const response = await fetchSite(
+          "/api/enquiries",
+          enquiryRequest(
+            { ...validQuickEnquiry, message: "Portraits <script>alert(1)</script>" },
+            "192.0.2.205",
+          ),
+        );
+        assert.equal(response.status, 201);
+        const result = await response.json();
+        assert.match(result.message, /enquiry has been sent/i);
+        assert.doesNotMatch(JSON.stringify(result), /re_test_private_key/);
+      },
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.ok(resendRequest, "the enquiry should reach the email provider");
+  assert.deepEqual(resendRequest.body.to, ["bookings@studiogq.co.za"]);
+  assert.equal(resendRequest.body.reply_to, "amina@example.com");
+  assert.match(resendRequest.body.subject, /Quick enquiry/i);
+  assert.match(resendRequest.body.html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/i);
+  assert.doesNotMatch(resendRequest.body.html, /<script>/i);
+  assert.match(String(resendRequest.init.headers.Authorization), /^Bearer re_test_private_key$/);
+});
+
+test("renders crawlable service and Learn hubs with connected detail pages", async () => {
+  const servicesResponse = await fetchSite("/services", {
+    headers: { accept: "text/html" },
+  });
+  const resourcesResponse = await fetchSite("/resources", {
+    headers: { accept: "text/html" },
+  });
+  assert.equal(servicesResponse.status, 200);
+  assert.equal(resourcesResponse.status, 200);
+
+  const [servicesHtml, resourcesHtml] = await Promise.all([
+    servicesResponse.text(),
+    resourcesResponse.text(),
+  ]);
+  assert.match(resourcesHtml, /Studio GQ[^<]*FilmHouse/i);
+  assert.match(resourcesHtml, /free[^<]*practical/i);
+  assert.match(resourcesHtml, /one-day/i);
+  assert.match(resourcesHtml, /coming soon/i);
+  assert.match(resourcesHtml, /href="\/booking"/i);
+  assert.match(resourcesHtml, /page-hero[^>]*page-hero--compact/i);
+  assert.doesNotMatch(servicesHtml, /page-hero--compact/i);
+  for (const image of resourceImages) {
+    assert.match(resourcesHtml, new RegExp(image.replace(".", "\\."), "i"));
+  }
+
+  for (const route of serviceRoutes) {
+    assert.match(
+      servicesHtml,
+      new RegExp(`href="${route.replaceAll("/", "\\/")}"`, "i"),
+    );
+    const html = await (
+      await fetchSite(route, { headers: { accept: "text/html" } })
+    ).text();
+    assert.match(html, /href="\/booking"/i);
+    assert.match(html, /href="\/resources\//i);
+    assert.match(html, /"@type":"Service"/i);
+    assert.match(html, /"@type":"BreadcrumbList"/i);
+  }
+
+  for (const [index, route] of resourceRoutes.entries()) {
+    assert.match(
+      resourcesHtml,
+      new RegExp(`href="${route.replaceAll("/", "\\/")}"`, "i"),
+    );
+    const html = await (
+      await fetchSite(route, { headers: { accept: "text/html" } })
+    ).text();
+    assert.match(html, /<article[\s>]/i);
+    assert.match(html, /<time[^>]*dateTime=/i);
+    assert.match(html, /Practical checklist/i);
+    assert.match(html, /href="\/services\//i);
+    assert.match(html, /href="\/booking"/i);
+    assert.match(html, /"@type":"Article"/i);
+    assert.match(html, /"@type":"BreadcrumbList"/i);
+    assert.match(html, new RegExp(resourceImages[index].replace(".", "\\."), "i"));
+    assert.doesNotMatch(html, /page-hero--compact/i);
+  }
+
+  assert.equal((await fetchSite("/services/not-a-service")).status, 404);
+  assert.equal((await fetchSite("/resources/not-an-article")).status, 404);
 });
 
 test("permanently redirects legacy pages into the one-page experience", async () => {

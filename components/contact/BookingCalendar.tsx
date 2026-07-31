@@ -16,7 +16,7 @@ type AvailabilityResponse = {
 
 type AvailabilityState =
   | { kind: "loading" }
-  | { kind: "ready"; occupied: Map<string, Set<OccupiedSlot>> }
+  | { kind: "ready" }
   | { kind: "preview" }
   | { kind: "error" };
 
@@ -79,6 +79,10 @@ export function BookingCalendar({
     return new Date(today.getFullYear(), today.getMonth(), 1);
   });
   const [availability, setAvailability] = useState<AvailabilityState>({ kind: "loading" });
+  const [occupiedSlots, setOccupiedSlots] = useState<Map<string, Set<OccupiedSlot>>>(
+    () => new Map(),
+  );
+  const [retryKey, setRetryKey] = useState(0);
 
   const loadAvailability = useCallback(async (signal?: AbortSignal) => {
     try {
@@ -90,6 +94,7 @@ export function BookingCalendar({
 
       if (!response.ok) throw new Error("Availability request failed");
       if (!result.configured) {
+        setOccupiedSlots(new Map());
         setAvailability({ kind: "preview" });
         onConfigurationChange(false);
         return;
@@ -99,7 +104,16 @@ export function BookingCalendar({
       for (const entry of result.occupied ?? []) {
         occupied.set(entry.date, new Set(entry.slots));
       }
-      setAvailability({ kind: "ready", occupied });
+      setOccupiedSlots((current) => {
+        const next = new Map(current);
+        const loadedMonth = result.month ?? monthKey(displayMonth);
+        for (const date of next.keys()) {
+          if (date.startsWith(`${loadedMonth}-`)) next.delete(date);
+        }
+        for (const [date, slots] of occupied) next.set(date, slots);
+        return next;
+      });
+      setAvailability({ kind: "ready" });
       onConfigurationChange(true);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
@@ -117,7 +131,7 @@ export function BookingCalendar({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [loadAvailability, refreshKey]);
+  }, [loadAvailability, refreshKey, retryKey]);
 
   const calendarCells = useMemo(() => {
     const firstDay = new Date(displayMonth.getFullYear(), displayMonth.getMonth(), 1);
@@ -140,10 +154,13 @@ export function BookingCalendar({
   const currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const canGoBack = displayMonth > currentMonth;
   const selectionEnabled = availability.kind === "ready" || availability.kind === "preview";
-  const selectedDateSlots = (date: string) =>
-    availability.kind === "ready"
-      ? availability.occupied.get(date) ?? new Set<OccupiedSlot>()
-      : new Set<OccupiedSlot>();
+  const selectedDateSlots = useCallback(
+    (date: string) =>
+      availability.kind === "ready"
+        ? occupiedSlots.get(date) ?? new Set<OccupiedSlot>()
+        : new Set<OccupiedSlot>(),
+    [availability.kind, occupiedSlots],
+  );
 
   useEffect(() => {
     if (
@@ -153,7 +170,7 @@ export function BookingCalendar({
     ) {
       onSessionChange("");
     }
-  }, [availability, onSessionChange, selectedDates, selectedSession]);
+  }, [availability, onSessionChange, selectedDates, selectedDateSlots, selectedSession]);
 
   function changeMonth(offset: number) {
     setAvailability({ kind: "loading" });
@@ -230,7 +247,7 @@ export function BookingCalendar({
                     const dateKey = toDateKey(date);
                     const slots =
                       availability.kind === "ready"
-                        ? availability.occupied.get(dateKey) ?? new Set<OccupiedSlot>()
+                        ? occupiedSlots.get(dateKey) ?? new Set<OccupiedSlot>()
                         : new Set<OccupiedSlot>();
                     const isPast = date < today;
                     const isFull = slots.has("morning") && slots.has("afternoon");
@@ -296,9 +313,20 @@ export function BookingCalendar({
               </p>
             ) : null}
             {availability.kind === "error" ? (
-              <p role="alert">
-                We could not load the booking calendar. Please try again or contact the studio.
-              </p>
+              <div className="flex flex-wrap items-center gap-3" role="alert">
+                <p>We could not load the booking calendar.</p>
+                <button
+                  className="min-h-11 border border-white/55 px-4 text-xs font-semibold uppercase tracking-[0.14em] text-white transition-colors hover:bg-white hover:text-[#050505]"
+                  onClick={() => {
+                    setAvailability({ kind: "loading" });
+                    onConfigurationChange(null);
+                    setRetryKey((key) => key + 1);
+                  }}
+                  type="button"
+                >
+                  Try again
+                </button>
+              </div>
             ) : null}
             {availability.kind === "ready" ? (
               <p>

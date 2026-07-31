@@ -1,36 +1,14 @@
 import type { BookingFormData } from "@/lib/booking-schema";
 import type { CrewBooking } from "@/lib/crew-types";
+import {
+  getStudioEmailConfig,
+  sendStudioEmail,
+  type StudioEmailAttachment,
+  type StudioEmailResult,
+} from "@/lib/resend-email";
 
-const RESEND_API_URL = "https://api.resend.com/emails";
-const EMAIL_TIMEOUT_MS = 8_000;
-
-type EmailConfig = {
-  apiKey: string;
-  from: string;
-  to: string;
-};
-
-export type BookingEmailResult =
-  | { sent: true; reason: "sent" }
-  | { sent: false; reason: "not_configured" | "missing_recipient" | "failed" };
-
-export type BookingQuoteAttachment = {
-  filename: string;
-  content: string;
-};
-
-function configuredValue(value: string | undefined) {
-  const trimmed = value?.trim();
-  return trimmed && !trimmed.startsWith("your-") ? trimmed : null;
-}
-
-function getEmailConfig(): EmailConfig | null {
-  const apiKey = configuredValue(process.env.RESEND_API_KEY);
-  const from = configuredValue(process.env.BOOKING_FROM_EMAIL);
-  const to = configuredValue(process.env.BOOKING_NOTIFICATION_EMAIL) ?? "bookings@studiogq.co.za";
-
-  return apiKey && from ? { apiKey, from, to } : null;
-}
+export type BookingEmailResult = StudioEmailResult;
+export type BookingQuoteAttachment = StudioEmailAttachment;
 
 function escapeHtml(value: string) {
   return value
@@ -56,53 +34,11 @@ function sessionLabel(session: BookingFormData["session"]) {
   return "Full day · 10 hours";
 }
 
-async function sendEmail(
-  config: EmailConfig,
-  input: {
-    to: string | string[];
-    subject: string;
-    text: string;
-    html: string;
-    idempotencyKey: string;
-    replyTo?: string;
-    bcc?: string[];
-    attachments?: BookingQuoteAttachment[];
-  },
-): Promise<BookingEmailResult> {
-  try {
-    const response = await fetch(RESEND_API_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.apiKey}`,
-        "Content-Type": "application/json",
-        "Idempotency-Key": input.idempotencyKey,
-      },
-      body: JSON.stringify({
-        from: config.from,
-        to: Array.isArray(input.to) ? input.to : [input.to],
-        subject: input.subject,
-        text: input.text,
-        html: input.html,
-        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
-        ...(input.bcc?.length ? { bcc: input.bcc } : {}),
-        ...(input.attachments?.length ? { attachments: input.attachments } : {}),
-      }),
-      cache: "no-store",
-      signal: AbortSignal.timeout(EMAIL_TIMEOUT_MS),
-    });
-
-    if (response.ok) return { sent: true, reason: "sent" };
-    return { sent: false, reason: "failed" };
-  } catch {
-    return { sent: false, reason: "failed" };
-  }
-}
-
 export async function notifyClientOfPendingBooking(
   booking: BookingFormData,
   bookingGroupId: string,
 ): Promise<BookingEmailResult> {
-  const config = getEmailConfig();
+  const config = getStudioEmailConfig();
   if (!config) return { sent: false, reason: "not_configured" };
 
   const dates = booking.dates.map(formatDate);
@@ -124,7 +60,7 @@ export async function notifyClientOfPendingBooking(
     `Booking reference: ${bookingGroupId}`,
   ].join("\n");
 
-  return sendEmail(config, {
+  return sendStudioEmail(config, {
     to: booking.email,
     replyTo: config.to,
     subject,
@@ -139,7 +75,7 @@ export async function notifyClientOfPendingBooking(
  * A missing or unavailable email provider must never discard a valid booking.
  */
 export async function notifyStudioOfBooking(booking: BookingFormData, bookingGroupId: string) {
-  const config = getEmailConfig();
+  const config = getStudioEmailConfig();
   if (!config) return { sent: false, reason: "not_configured" } satisfies BookingEmailResult;
 
   const dates = booking.dates.map(formatDate);
@@ -166,7 +102,7 @@ export async function notifyStudioOfBooking(booking: BookingFormData, bookingGro
     `Booking reference: ${bookingGroupId}`,
   ].join("\n");
 
-  return sendEmail(config, {
+  return sendStudioEmail(config, {
     to: config.to,
     subject,
     text,
@@ -182,7 +118,7 @@ export async function notifyClientOfBookingConfirmation(
   note?: string,
   quote?: BookingQuoteAttachment,
 ): Promise<BookingEmailResult> {
-  const config = getEmailConfig();
+  const config = getStudioEmailConfig();
   if (!config) return { sent: false, reason: "not_configured" };
   if (!booking.email) return { sent: false, reason: "missing_recipient" };
 
@@ -206,7 +142,7 @@ export async function notifyClientOfBookingConfirmation(
     "Studio GQ",
   ].filter((line): line is string => typeof line === "string").join("\n");
 
-  return sendEmail(config, {
+  return sendStudioEmail(config, {
     to: booking.email,
     bcc: [config.to],
     replyTo: config.to,

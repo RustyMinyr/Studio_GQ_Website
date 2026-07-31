@@ -4,9 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { navigation } from "@/lib/site-content";
-
-const headerNavigation = navigation.filter((item) => item.href !== "/booking");
+import { primaryNavigation } from "@/lib/site-content";
 
 export function Header() {
   const pathname = usePathname();
@@ -16,12 +14,20 @@ export function Header() {
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  function closeMobileMenu() {
+    setOpen(false);
+    window.setTimeout(() => menuButtonRef.current?.focus(), 0);
+  }
+
   function getAriaCurrent(href: string) {
     if (pathname === "/") {
       if (activeHref !== href) return undefined;
       return href === "/" ? ("page" as const) : ("location" as const);
     }
-    return pathname === href ? ("page" as const) : undefined;
+    if (href === "/") return pathname === "/" ? ("page" as const) : undefined;
+    return pathname === href || pathname.startsWith(`${href}/`)
+      ? ("page" as const)
+      : undefined;
   }
 
   useEffect(() => {
@@ -115,14 +121,14 @@ export function Header() {
             />
           </Link>
           <nav aria-label="Primary navigation" className="site-header__nav">
-            {headerNavigation.map((item) => (
-              <Link
+            {primaryNavigation.map((item) => (
+              <a
                 key={item.href}
                 href={item.href}
                 aria-current={getAriaCurrent(item.href)}
               >
                 {item.label}
-              </Link>
+              </a>
             ))}
           </nav>
           <Link href="/booking" className="site-header__cta">
@@ -144,19 +150,19 @@ export function Header() {
       </header>
       <div ref={menuRef} id="mobile-navigation" className={`mobile-menu ${open ? "mobile-menu--open" : ""}`} aria-hidden={!open} aria-label={open ? "Site navigation" : undefined} aria-modal={open ? "true" : undefined} role={open ? "dialog" : undefined}>
         <nav aria-label="Mobile navigation" className="site-container mobile-menu__nav">
-          {headerNavigation.map((item, index) => (
-            <Link
+          {primaryNavigation.map((item, index) => (
+            <a
               key={item.href}
               href={item.href}
               aria-current={getAriaCurrent(item.href)}
               tabIndex={open ? 0 : -1}
-              onClick={() => setOpen(false)}
+              onClick={closeMobileMenu}
             >
               <span>0{index + 1}</span>
               {item.label}
-            </Link>
+            </a>
           ))}
-          <Link href="/booking" className="mobile-menu__book" tabIndex={open ? 0 : -1} onClick={() => setOpen(false)}>
+          <Link href="/booking" className="mobile-menu__book" tabIndex={open ? 0 : -1} onClick={closeMobileMenu}>
             Book the studio <span aria-hidden="true">{"\u2192"}</span>
           </Link>
         </nav>

@@ -11,6 +11,7 @@ import {
   sessionDetails,
   type BookingSession,
 } from "@/lib/booking-schema";
+import { contactDetails } from "@/lib/site-content";
 
 type FieldErrors = Record<string, string[] | undefined>;
 
@@ -149,7 +150,7 @@ export function BookingEnquiryForm() {
     ].join("\n");
     const subject = `Studio GQ booking enquiry — ${payload.dates.length} day${payload.dates.length === 1 ? "" : "s"}`;
 
-    window.location.href = `mailto:booking@studiogq.co.za?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    window.location.href = `mailto:${contactDetails.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -165,7 +166,7 @@ export function BookingEnquiryForm() {
       setSubmission({
         kind: "error",
         message:
-          "This browser could not securely identify the booking request. Please refresh or email booking@studiogq.co.za.",
+          `This browser could not securely identify the booking request. Please refresh or email ${contactDetails.email}.`,
       });
       focusFeedback();
       return;
@@ -280,7 +281,7 @@ export function BookingEnquiryForm() {
     } catch {
       setSubmission({
         kind: "error",
-        message: "We could not connect. Please try again or email booking@studiogq.co.za.",
+        message: `We could not connect. Please try again or email ${contactDetails.email}.`,
       });
       focusFeedback();
     }

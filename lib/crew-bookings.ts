@@ -26,6 +26,39 @@ const CREW_CONTACT_EMAIL = "bookings@studiogq.co.za";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+export type ForjdeckBooking = {
+  id: string;
+  bookingGroupId: string;
+  bookingDate: string;
+  session: BookingSession;
+  name: string;
+  company: string | null;
+  status: "pending" | "confirmed" | "cancelled" | "expired";
+  holdExpiresAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ForjdeckCalendarBlock = {
+  id: string;
+  bookingDate: string;
+  session: BookingSession;
+  title: string;
+  createdAt: string;
+};
+
+export type ForjdeckBookingYear = {
+  year: number;
+  bookings: ForjdeckBooking[];
+  blocks: ForjdeckCalendarBlock[];
+};
+
+export type ForjdeckConfirmationResult = {
+  outcome: "confirmed" | "already_confirmed" | "conflict" | "not_found";
+  booking: ForjdeckBooking | null;
+  emailBooking: CrewBooking | null;
+};
+
 export class CrewBookingError extends Error {
   constructor(
     message: string,
@@ -149,6 +182,31 @@ function normaliseBlock(row: Row): CrewCalendarBlock {
   };
 }
 
+function normaliseForjdeckBooking(row: Row): ForjdeckBooking {
+  return {
+    id: text(row, "id"),
+    bookingGroupId: text(row, "booking_group_id"),
+    bookingDate: text(row, "booking_date"),
+    session: text(row, "session") as BookingSession,
+    name: text(row, "name"),
+    company: nullableText(row, "company"),
+    status: text(row, "status") as ForjdeckBooking["status"],
+    holdExpiresAt: nullableText(row, "hold_expires_at"),
+    createdAt: text(row, "created_at"),
+    updatedAt: text(row, "updated_at"),
+  };
+}
+
+function normaliseForjdeckBlock(row: Row): ForjdeckCalendarBlock {
+  return {
+    id: text(row, "id"),
+    bookingDate: text(row, "booking_date"),
+    session: text(row, "session") as BookingSession,
+    title: text(row, "title"),
+    createdAt: text(row, "created_at"),
+  };
+}
+
 function blockAsCalendarItem(row: Row): CrewBooking {
   const block = normaliseBlock(row);
   return {
@@ -201,7 +259,8 @@ async function releaseExpiredHolds(config: TursoConfig) {
   }
 }
 
-const bookingColumns = "id, booking_date, session, name, company, email, phone, additional_items, message, price_zar, status, hold_expires_at, created_at, updated_at";
+const bookingColumns = "id, booking_group_id, booking_date, session, name, company, email, phone, additional_items, message, price_zar, status, hold_expires_at, created_at, updated_at";
+const forjdeckBookingColumns = "id, booking_group_id, booking_date, session, name, company, status, hold_expires_at, created_at, updated_at";
 
 export async function getCrewDashboard(): Promise<CrewDashboard> {
   const config = requireConfig();
@@ -236,6 +295,55 @@ function monthRange(year: number, month: number) {
   const firstDate = `${year}-${String(month).padStart(2, "0")}-01`;
   const lastDate = `${year}-${String(month).padStart(2, "0")}-${String(new Date(Date.UTC(year, month, 0)).getUTCDate()).padStart(2, "0")}`;
   return { firstDate, lastDate };
+}
+
+function yearRange(year: number) {
+  if (!Number.isInteger(year) || year < 2000 || year > 2200) {
+    throw new CrewBookingError("Choose a valid calendar year.", "invalid");
+  }
+  return {
+    firstDate: `${year}-01-01`,
+    lastDate: `${year}-12-31`,
+  };
+}
+
+/**
+ * Returns the deliberately privacy-minimised calendar used by Forjdeck.
+ * Contact details, booking messages, add-ons and prices never cross this API.
+ */
+export async function getForjdeckBookingYear(
+  year: number,
+): Promise<ForjdeckBookingYear> {
+  const { firstDate, lastDate } = yearRange(year);
+  const config = requireConfig();
+  await releaseExpiredHolds(config);
+  const client = getTursoClient(config);
+  try {
+    const [bookings, blocks] = await Promise.all([
+      client.execute({
+        sql: `select ${forjdeckBookingColumns} from studio_bookings where booking_date between ? and ? and status in ('pending', 'confirmed') order by booking_date asc, created_at asc`,
+        args: [firstDate, lastDate],
+      }),
+      client.execute({
+        sql: "select id, booking_date, session, title, created_at from studio_calendar_blocks where booking_date between ? and ? order by booking_date asc, created_at asc",
+        args: [firstDate, lastDate],
+      }),
+    ]);
+
+    return {
+      year,
+      bookings: bookings.rows.map(normaliseForjdeckBooking),
+      blocks: blocks.rows.map(normaliseForjdeckBlock),
+    };
+  } catch (error) {
+    if (error instanceof CrewBookingError) throw error;
+    throw new CrewBookingError(
+      "The booking service is temporarily unavailable.",
+      "upstream",
+    );
+  } finally {
+    client.close();
+  }
 }
 
 export async function getCrewCalendar(year: number, month: number): Promise<CrewBooking[]> {
@@ -303,6 +411,105 @@ export async function confirmCrewBooking(id: string): Promise<boolean> {
   }
 }
 
+/**
+ * Confirms exactly one booking row/session for the Forjdeck admin bridge.
+ * The optimistic `updated_at` predicate prevents a stale admin screen from
+ * approving a booking that changed in Studio GQ after it was loaded.
+ */
+export async function confirmCrewBookingForForjdeck(
+  id: string,
+  expectedUpdatedAt: string,
+): Promise<ForjdeckConfirmationResult> {
+  assertUuid(id);
+  const config = requireConfig();
+  await releaseExpiredHolds(config);
+  const client = getTursoClient(config);
+
+  try {
+    const current = await client.execute({
+      sql: `select ${bookingColumns} from studio_bookings where id = ? limit 1`,
+      args: [id],
+    });
+    const row = current.rows[0];
+
+    if (!row) {
+      return { outcome: "not_found", booking: null, emailBooking: null };
+    }
+
+    const currentBooking = normaliseForjdeckBooking(row);
+    if (currentBooking.status === "confirmed") {
+      return {
+        outcome: "already_confirmed",
+        booking: currentBooking,
+        emailBooking: null,
+      };
+    }
+
+    if (
+      currentBooking.status !== "pending" ||
+      currentBooking.updatedAt !== expectedUpdatedAt
+    ) {
+      return {
+        outcome: "conflict",
+        booking: currentBooking,
+        emailBooking: null,
+      };
+    }
+
+    const updatedAt = nowIso();
+    const update = await client.execute({
+      sql: "update studio_bookings set status = 'confirmed', hold_expires_at = null, updated_at = ? where id = ? and status = 'pending' and updated_at = ?",
+      args: [updatedAt, id, expectedUpdatedAt],
+    });
+
+    if (update.rowsAffected !== 1) {
+      const latest = await client.execute({
+        sql: `select ${bookingColumns} from studio_bookings where id = ? limit 1`,
+        args: [id],
+      });
+      const latestRow = latest.rows[0];
+      if (!latestRow) {
+        return { outcome: "not_found", booking: null, emailBooking: null };
+      }
+      const latestBooking = normaliseForjdeckBooking(latestRow);
+      return {
+        outcome:
+          latestBooking.status === "confirmed"
+            ? "already_confirmed"
+            : "conflict",
+        booking: latestBooking,
+        emailBooking: null,
+      };
+    }
+
+    const confirmed = await client.execute({
+      sql: `select ${bookingColumns} from studio_bookings where id = ? limit 1`,
+      args: [id],
+    });
+    const confirmedRow = confirmed.rows[0];
+    if (!confirmedRow) {
+      throw new CrewBookingError(
+        "The confirmed booking could not be reloaded.",
+        "upstream",
+      );
+    }
+
+    return {
+      outcome: "confirmed",
+      booking: normaliseForjdeckBooking(confirmedRow),
+      emailBooking: normaliseBooking(confirmedRow),
+    };
+  } catch (error) {
+    if (error instanceof CrewBookingError) throw error;
+    throw new CrewBookingError(
+      "The booking service could not complete that request.",
+      "upstream",
+    );
+  } finally {
+    client.close();
+  }
+}
+
 export async function cancelCrewBooking(id: string): Promise<boolean> {
   assertUuid(id);
   const client = getTursoClient(requireConfig());
@@ -322,7 +529,7 @@ export async function cancelCrewBooking(id: string): Promise<boolean> {
     await transaction.execute({ sql: "delete from studio_booking_slots where booking_id = ?", args: [id] });
     await transaction.commit();
     return true;
-  } catch (error) {
+  } catch {
     await rollbackQuietly(transaction);
     throw new CrewBookingError("The booking service could not complete that request.", "upstream");
   } finally {

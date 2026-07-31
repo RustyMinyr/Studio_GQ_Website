@@ -62,6 +62,8 @@ button { cursor: pointer; }
 .booking-success-dialog__panel { position: relative; padding: 2rem; }
 .booking-success-dialog__close { position: absolute; top: .75rem; right: .75rem; display: inline-grid; width: 2.5rem; height: 2.5rem; place-items: center; border: 1px solid rgba(255,255,255,.38); background: transparent; color: var(--white); font-size: 1.6rem; line-height: 1; transition: background-color .25s ease, color .25s ease; }
 .booking-success-dialog__close:hover { background: var(--white); color: var(--black); }
+.workshop-dialog { position: fixed; inset: 0; width: min(42rem, calc(100% - 1.5rem)); max-width: none; max-height: calc(100dvh - 1.5rem); margin: auto; overflow: auto; border: 1px solid rgba(255,255,255,.35); padding: 0; background: var(--black); color: var(--white); }
+.workshop-dialog::backdrop { background: rgba(0,0,0,.86); backdrop-filter: blur(5px); }
 
 .site-header { position: fixed; inset: 0 0 auto; z-index: 100; border-bottom: 0; background: rgba(5,5,5,0); color: var(--white); -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); transition: background-color .35s ease, -webkit-backdrop-filter .35s ease, backdrop-filter .35s ease; }
 .site-header--solid { background: rgba(5,5,5,.9); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
@@ -92,6 +94,12 @@ button { cursor: pointer; }
 .page-hero h1 { max-width: 16ch; margin: 0; font-size: clamp(3rem, 5.5vw, 5.75rem); font-weight: 400; letter-spacing: -.05em; line-height: .92; }
 .page-hero__intro { max-width: 36rem; margin: 0 0 .25rem; font-size: clamp(.95rem, 1.2vw, 1.125rem); line-height: 1.6; }
 .page-hero__actions { justify-self: start; }
+.page-hero--compact { padding: 7.75rem 0 3rem; }
+.page-hero--compact .page-hero__inner { grid-template-areas: "label label" "title intro" "title actions"; gap: 1rem 3rem; align-items: start; }
+.page-hero--compact .section-label { grid-area: label; }
+.page-hero--compact h1 { grid-area: title; max-width: 13ch; font-size: clamp(2.9rem, 4.7vw, 4.85rem); }
+.page-hero--compact .page-hero__intro { grid-area: intro; align-self: end; }
+.page-hero--compact .page-hero__actions { grid-area: actions; margin-top: .75rem; }
 
 .site-footer { background: var(--black); color: var(--white); padding-top: clamp(5rem, 9vw, 9rem); }
 .site-footer__grid { display: grid; grid-template-columns: 1.5fr 1fr .7fr .7fr 1.9fr; gap: clamp(2rem, 4vw, 5rem); padding-bottom: clamp(4rem, 8vw, 7rem); }
@@ -107,13 +115,14 @@ button { cursor: pointer; }
 .newsletter-form > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .newsletter-form__field { display: grid; grid-template-columns: 1fr 3.25rem; border-bottom: 1px solid var(--dark-grey); }
 .newsletter-form input { min-width: 0; border: 0; background: transparent; color: var(--white); padding: 1rem 0; outline: none; }
+.newsletter-form input:focus-visible { outline: 2px solid var(--white); outline-offset: 4px; }
 .newsletter-form button { border: 0; background: transparent; color: var(--white); }
 .newsletter-form > p { min-height: 2.8em; margin: .75rem 0 0; color: var(--mid-grey); font-size: .75rem; }
 .site-footer__legal { display: flex; justify-content: space-between; gap: 2rem; border-top: 1px solid rgba(255,255,255,.14); padding-block: 1.5rem; color: var(--mid-grey); font-size: .7rem; }
 .site-footer__legal p { margin: 0; }
 .site-footer__legal div { display: flex; gap: 1.5rem; }
 
-@media (max-width: 1050px) {
+@media (max-width: 1180px) {
   .site-header__inner { grid-template-columns: 1fr auto; min-height: 5.5rem; }
   .site-header__nav, .site-header__cta { display: none; }
   .site-header__menu-button { display: block; }
@@ -126,6 +135,12 @@ button { cursor: pointer; }
   .page-hero__inner { grid-template-columns: 1fr; gap: 2rem; }
   .page-hero .section-label { grid-column: auto; }
   .page-hero h1 { font-size: clamp(2.75rem, 13vw, 4.5rem); }
+  .page-hero--compact { padding: 7rem 0 3rem; }
+  .page-hero--compact .page-hero__inner { grid-template-areas: none; gap: 1.5rem; }
+  .page-hero--compact .section-label,
+  .page-hero--compact h1,
+  .page-hero--compact .page-hero__intro,
+  .page-hero--compact .page-hero__actions { grid-area: auto; margin-top: 0; }
   .site-footer__grid { grid-template-columns: 1fr 1fr; }
   .site-footer__brand, .site-footer__newsletter { grid-column: 1 / -1; }
   .site-footer__legal { flex-direction: column; }

@@ -6,6 +6,7 @@ import { EasternCapeStrip } from "@/components/home/EasternCapeStrip";
 import { EquipmentSection } from "@/components/home/EquipmentSection";
 import { FaqSection } from "@/components/home/FaqSection";
 import { Hero } from "@/components/home/Hero";
+import { LearnSection } from "@/components/home/LearnSection";
 import { ServicesGrid } from "@/components/home/ServicesGrid";
 import { StudioMomentsSection } from "@/components/home/StudioMomentsSection";
 
@@ -28,6 +29,7 @@ export default function Home() {
       <AboutStudio />
       <EquipmentSection />
       <StudioMomentsSection />
+      <LearnSection />
       <FaqSection />
       <ContactSection />
       <EasternCapeStrip />

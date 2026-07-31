@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Aperture,
   AudioLines,
@@ -10,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { ArrowLink } from "@/components/ui/ArrowLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
@@ -17,6 +19,7 @@ type Service = {
   title: string;
   description: string;
   icon: LucideIcon;
+  href: string;
 };
 
 const services: Service[] = [
@@ -24,41 +27,49 @@ const services: Service[] = [
     title: "Studio Hire",
     description: "Private, professional studios for hire.",
     icon: Aperture,
+    href: "/services/studio-hire",
   },
   {
     title: "Infinity Curve",
     description: "Seamless cyclorama for clean, limitless shoots.",
     icon: Circle,
+    href: "/services/greenscreen-infinity-curve",
   },
   {
     title: "Podcast Studio",
     description: "Acoustically treated space for podcasting and interviews.",
     icon: AudioLines,
+    href: "/services/podcast-studio",
   },
   {
     title: "Flexible Shooting Spaces",
     description: "Versatile layouts designed to adapt to your creative vision.",
     icon: MoveDiagonal2,
+    href: "/services/photography-film",
   },
   {
     title: "Greenscreen Studio",
     description: "Precision greenscreen setup for film, video, and digital content.",
     icon: Clapperboard,
+    href: "/services/greenscreen-infinity-curve",
   },
   {
     title: "Hair / Makeup / Wardrobe",
     description: "On-site facilities to style and prepare talent.",
     icon: Sparkles,
+    href: "/services/studio-hire",
   },
   {
     title: "Lighting & Grip",
     description: "Professional lighting and grip equipment available on-site.",
     icon: Lightbulb,
+    href: "/services/equipment-production-support",
   },
   {
     title: "Production Support",
     description: "Experienced crew and support to bring your production to life.",
     icon: UsersRound,
+    href: "/services/equipment-production-support",
   },
 ];
 
@@ -66,7 +77,8 @@ export function ServicesGrid() {
   return (
     <section
       aria-labelledby="services-heading"
-      className="bg-[#f7f7f5] py-24 text-[#050505] sm:py-28 lg:py-36"
+      className="scroll-mt-24 bg-[#f7f7f5] py-24 text-[#050505] sm:py-28 lg:py-36"
+      id="services"
     >
       <div className="site-container grid gap-14 lg:grid-cols-12 lg:gap-10">
         <Reveal className="lg:col-span-4 lg:pr-10">
@@ -81,6 +93,9 @@ export function ServicesGrid() {
             From adaptable studio spaces and specialist facilities to lighting, grip and
             production support, everything is ready to help your shoot run smoothly.
           </p>
+          <ArrowLink className="mt-8" href="/services" variant="outline-dark">
+            Explore all services
+          </ArrowLink>
         </Reveal>
 
         <div className="border-t border-[#a7a7a3]/50 lg:col-span-8">
@@ -94,7 +109,11 @@ export function ServicesGrid() {
                   delay={(index % 4) * 0.06}
                   className="border-b border-[#a7a7a3]/50 sm:border-r"
                 >
-                  <article className="flex min-h-[240px] flex-col px-5 py-8 sm:min-h-[270px] sm:px-7 xl:min-h-[300px] xl:px-6">
+                  <Link
+                    href={service.href}
+                    className="group flex min-h-[240px] flex-col px-5 py-8 transition-colors hover:bg-white focus-visible:bg-white sm:min-h-[270px] sm:px-7 xl:min-h-[300px] xl:px-6"
+                    aria-label={`Explore ${service.title}`}
+                  >
                     <Icon
                       aria-hidden="true"
                       className="mx-auto h-10 w-10 sm:h-11 sm:w-11"
@@ -107,8 +126,11 @@ export function ServicesGrid() {
                       <p className="mx-auto mt-3 max-w-[26ch] text-sm leading-6 text-[#565656]">
                         {service.description}
                       </p>
+                      <span className="mt-6 inline-flex items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.15em] text-[#565656] transition-colors group-hover:text-[#050505]">
+                        Explore service <span aria-hidden="true">→</span>
+                      </span>
                     </div>
-                  </article>
+                  </Link>
                 </Reveal>
               );
             })}

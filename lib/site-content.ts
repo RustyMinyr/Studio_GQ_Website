@@ -1,12 +1,18 @@
 export const siteUrl = "https://www.studiogq.co.za";
 
-export const navigation = [
+export const primaryNavigation = [
   { href: "/", label: "Home" },
+  { href: "/#services", label: "Services" },
   { href: "/#about", label: "About" },
   { href: "/#equipment", label: "Equipment" },
+  { href: "/#learn", label: "Learn" },
   { href: "/#faq", label: "FAQ" },
-  { href: "/booking", label: "Booking" },
   { href: "/#contact", label: "Contact" },
+] as const;
+
+export const footerNavigation = [
+  ...primaryNavigation,
+  { href: "/booking", label: "Booking" },
 ] as const;
 
 export const contactDetails = {

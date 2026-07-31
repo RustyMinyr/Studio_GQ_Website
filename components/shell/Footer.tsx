@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { contactDetails, navigation } from "@/lib/site-content";
+import { contactDetails, footerNavigation } from "@/lib/site-content";
 import { NewsletterForm } from "./NewsletterForm";
 
 export function Footer() {
@@ -21,7 +21,7 @@ export function Footer() {
         </div>
         <div>
           <p className="site-footer__label">Links</p>
-          {navigation.map((item) => (
+          {footerNavigation.map((item) => (
             <Link key={item.href} href={item.href}>{item.label}</Link>
           ))}
         </div>

@@ -7,6 +7,7 @@ type PageHeroProps = {
   intro: string;
   children?: ReactNode;
   tone?: "dark" | "light";
+  size?: "default" | "compact";
 };
 
 export function PageHero({
@@ -15,10 +16,15 @@ export function PageHero({
   intro,
   children,
   tone = "dark",
+  size = "default",
 }: PageHeroProps) {
   const isDark = tone === "dark";
   return (
-    <section className={`page-hero ${isDark ? "page-hero--dark" : "page-hero--light"}`}>
+    <section
+      className={`page-hero ${isDark ? "page-hero--dark" : "page-hero--light"} ${
+        size === "compact" ? "page-hero--compact" : ""
+      }`.trim()}
+    >
       <div className="site-container page-hero__inner">
         <SectionLabel tone={isDark ? "dark" : "light"}>{eyebrow}</SectionLabel>
         <h1>{title}</h1>

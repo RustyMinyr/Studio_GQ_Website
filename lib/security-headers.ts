@@ -4,7 +4,7 @@ function contentSecurityPolicy(allowDevelopmentEval = false) {
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-  "form-action 'self' mailto:",
+  "form-action 'self'",
   "img-src 'self' data: blob:",
   "media-src 'self' blob:",
   "font-src 'self'",

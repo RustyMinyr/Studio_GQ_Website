@@ -34,11 +34,13 @@ export const metadata: Metadata = {
 const localBusiness = {
   "@context": "https://schema.org",
   "@type": "LocalBusiness",
+  "@id": `${siteUrl}/#studio`,
   name: "Studio GQ",
   url: siteUrl,
   image: `${siteUrl}/images/hero-studio-gq.webp`,
   email: contactDetails.email,
   telephone: contactDetails.phoneDisplay,
+  sameAs: ["https://www.instagram.com/filmhouse_studiogq/"],
   address: {
     "@type": "PostalAddress",
     streetAddress: "Unit 5, Moffett Business Centre, 8 Restitution Avenue",
@@ -50,7 +52,7 @@ const localBusiness = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
+    <html data-scroll-behavior="smooth" lang="en-ZA">
       <body>
         <a className="skip-link" href="#main-content">Skip to main content</a>
         <Header />
