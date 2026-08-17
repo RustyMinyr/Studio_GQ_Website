@@ -12,7 +12,7 @@ import { PageHero } from "@/components/ui/PageHero";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { getResourceArticle } from "@/lib/resources";
 import { getStudioService, studioServices } from "@/lib/services";
-import { siteUrl } from "@/lib/site-content";
+import { siteUrl, studioServiceAreas } from "@/lib/site-content";
 
 type ServicePageProps = {
   params: Promise<{ slug: string }>;
@@ -115,10 +115,7 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
           name: "Studio GQ",
           url: siteUrl,
         },
-        areaServed: {
-          "@type": "City",
-          name: "Gqeberha",
-        },
+        areaServed: studioServiceAreas,
       },
       {
         "@type": "BreadcrumbList",

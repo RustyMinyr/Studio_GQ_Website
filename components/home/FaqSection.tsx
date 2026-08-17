@@ -29,7 +29,7 @@ const questions: FaqItem[] = [
   },
   {
     question: "Where is Studio GQ?",
-    answer: "Studio GQ is at Unit 5, Moffett Business Centre, 8 Restitution Avenue, Fairview, Gqeberha, South Africa.",
+    answer: "Studio GQ is at Unit 5, Moffett Business Centre, 8 Restitution Avenue, Fairview, Gqeberha | Port Elizabeth, Eastern Cape, 6070, South Africa.",
   },
 ];
 

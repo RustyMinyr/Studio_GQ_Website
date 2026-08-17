@@ -1,31 +1,38 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/shell/Footer";
 import { Header } from "@/components/shell/Header";
-import { contactDetails, siteUrl } from "@/lib/site-content";
+import {
+  contactDetails,
+  siteUrl,
+  studioLocation,
+  studioServiceAreas,
+} from "@/lib/site-content";
 import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Studio GQ | Film, Photography & Podcast Studio in Gqeberha",
+    default: "Film, Video & Photography Studio Port Elizabeth | Studio GQ",
     template: "%s | Studio GQ",
   },
   description:
-    "Studio GQ is a purpose-built film, photography, podcast, greenscreen and content production studio available for hire in Gqeberha, Eastern Cape.",
+    "Studio GQ is a purpose-built film, video and photography studio in Gqeberha | Port Elizabeth, Eastern Cape, with podcast, greenscreen and production support.",
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_ZA",
     url: siteUrl,
     siteName: "Studio GQ",
-    title: "Studio GQ | Create Without Compromise",
-    description: "Purpose-built film, photography, podcast and content production space in Gqeberha.",
+    title: "Film, Video & Photography Studio Port Elizabeth | Studio GQ",
+    description:
+      "A purpose-built film, video, photography, podcast and greenscreen studio in Gqeberha | Port Elizabeth, Eastern Cape.",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "Studio GQ — Create Without Compromise" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Studio GQ | Create Without Compromise",
-    description: "Purpose-built creative production space in Gqeberha.",
+    title: "Film, Video & Photography Studio Port Elizabeth | Studio GQ",
+    description:
+      "Purpose-built creative production space in Gqeberha | Port Elizabeth, Eastern Cape.",
     images: ["/og.png"],
   },
   icons: { icon: "/logos/studio-gq-black.png" },
@@ -36,17 +43,52 @@ const localBusiness = {
   "@type": "LocalBusiness",
   "@id": `${siteUrl}/#studio`,
   name: "Studio GQ",
+  alternateName: "Studio GQ Port Elizabeth",
   url: siteUrl,
-  image: `${siteUrl}/images/hero-studio-gq.webp`,
+  description:
+    "A purpose-built film, video, photography, podcast and greenscreen studio serving Gqeberha | Port Elizabeth and the Eastern Cape.",
+  logo: `${siteUrl}/logos/studio-gq-black.png`,
+  image: [
+    `${siteUrl}/images/hero-studio-gq.webp`,
+    `${siteUrl}/images/studio-infinity-curve-group.webp`,
+  ],
   email: contactDetails.email,
-  telephone: contactDetails.phoneDisplay,
+  telephone: contactDetails.phoneHref,
+  priceRange: "R2,500-R4,500+",
+  currenciesAccepted: "ZAR",
   sameAs: ["https://www.instagram.com/filmhouse_studiogq/"],
+  hasMap: studioLocation.mapUrl,
+  geo: {
+    "@type": "GeoCoordinates",
+    latitude: studioLocation.latitude,
+    longitude: studioLocation.longitude,
+  },
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday",
+    ],
+    opens: "00:00",
+    closes: "23:59",
+  },
+  areaServed: studioServiceAreas,
+  potentialAction: {
+    "@type": "ReserveAction",
+    target: `${siteUrl}/booking`,
+  },
   address: {
     "@type": "PostalAddress",
-    streetAddress: "Unit 5, Moffett Business Centre, 8 Restitution Avenue",
-    addressLocality: "Gqeberha",
-    addressRegion: "Eastern Cape",
-    addressCountry: "ZA",
+    streetAddress: studioLocation.streetAddress,
+    addressLocality: studioLocation.locality,
+    addressRegion: studioLocation.region,
+    postalCode: studioLocation.postalCode,
+    addressCountry: studioLocation.countryCode,
   },
 };
 

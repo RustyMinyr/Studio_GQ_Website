@@ -14,7 +14,7 @@ export function EasternCapeStrip() {
       <div className="site-container grid gap-9 lg:grid-cols-12 lg:items-center lg:gap-10">
         <div className="lg:col-span-5">
           <p className="text-xs font-medium tracking-[0.2em] text-[#565656]">
-            GQEBERHA / EASTERN CAPE
+            GQEBERHA | PORT ELIZABETH | EASTERN CAPE
           </p>
           <h2
             id="eastern-cape-heading"

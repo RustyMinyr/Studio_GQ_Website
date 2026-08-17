@@ -9,15 +9,45 @@ import { Hero } from "@/components/home/Hero";
 import { LearnSection } from "@/components/home/LearnSection";
 import { ServicesGrid } from "@/components/home/ServicesGrid";
 import { StudioMomentsSection } from "@/components/home/StudioMomentsSection";
+import { siteUrl } from "@/lib/site-content";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Studio GQ | Film, Photography & Podcast Studio in Gqeberha",
+    absolute: "Film, Video & Photography Studio Port Elizabeth | Studio GQ",
   },
   description:
-    "Studio GQ is a purpose-built film, photography, podcast, greenscreen and content production studio available for hire in Gqeberha, Eastern Cape.",
+    "Studio GQ is a purpose-built film, video and photography studio in Gqeberha | Port Elizabeth, Eastern Cape, with podcast, greenscreen and production support.",
   alternates: {
     canonical: "/",
+  },
+};
+
+const tourVideo = {
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  "@id": `${siteUrl}/#studio-tour-video`,
+  name: "Studio GQ Tour",
+  description:
+    "Tour Studio GQ's film, video, photography, podcast and greenscreen production space in Gqeberha | Port Elizabeth, Eastern Cape.",
+  thumbnailUrl: `${siteUrl}/images/gallery/studio-gq-tour-poster.jpg`,
+  uploadDate: "2026-07-17T00:02:34+02:00",
+  duration: "PT2M6S",
+  contentUrl: `${siteUrl}/videos/studio-gq-tour.mp4`,
+  inLanguage: "en-ZA",
+  isFamilyFriendly: true,
+  publisher: {
+    "@type": "Organization",
+    "@id": `${siteUrl}/#studio`,
+    name: "Studio GQ",
+    url: siteUrl,
+    logo: {
+      "@type": "ImageObject",
+      url: `${siteUrl}/logos/studio-gq-black.png`,
+    },
+  },
+  potentialAction: {
+    "@type": "WatchAction",
+    target: `${siteUrl}/#about`,
   },
 };
 
@@ -33,6 +63,10 @@ export default function Home() {
       <FaqSection />
       <ContactSection />
       <EasternCapeStrip />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(tourVideo) }}
+      />
     </main>
   );
 }

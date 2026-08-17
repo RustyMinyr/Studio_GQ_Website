@@ -12,15 +12,15 @@ import { resourceArticles } from "@/lib/resources";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Studio Production Guides & Workshops | Studio GQ Learn",
+    absolute: "Film & Photography Production Guides | Studio GQ Learn",
   },
   description:
-    "Practical Studio GQ guides for lighting, photography, video, interview sound, podcasts, greenscreen and production planning, plus free workshops with FilmHouse.",
+    "Practical guides for studio lighting, photography, video, interview sound, podcasts and greenscreen from Studio GQ in Gqeberha | Port Elizabeth, Eastern Cape.",
   alternates: { canonical: "/resources" },
   openGraph: {
-    title: "Studio Production Guides & Workshops | Studio GQ Learn",
+    title: "Film & Photography Production Guides | Studio GQ Learn",
     description:
-      "Practical production knowledge, studio guides and free one-day workshops from Studio GQ and FilmHouse.",
+      "Practical production guides and free workshops from Studio GQ and FilmHouse in Gqeberha | Port Elizabeth, Eastern Cape.",
     url: "/resources",
     images: [
       {
@@ -31,8 +31,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Studio Production Guides & Workshops | Studio GQ Learn",
-    description: "Practical production knowledge, studio guides and free one-day workshops from Studio GQ and FilmHouse.",
+    title: "Film & Photography Production Guides | Studio GQ Learn",
+    description: "Practical production guides and workshops from Gqeberha | Port Elizabeth, Eastern Cape.",
     images: ["/images/resources/learn-workshop-wide.webp"],
   },
 };
@@ -43,7 +43,7 @@ export default function ResourcesPage() {
       <PageHero
         eyebrow="Studio GQ Learn"
         title="Learn the work by doing it."
-        intro="Practical production guides for people who want cleaner results, clearer decisions and fewer surprises on set."
+        intro="Practical production guides from our film, video and photography studio in Gqeberha | Port Elizabeth, Eastern Cape—for cleaner results, clearer decisions and fewer surprises on set."
         size="compact"
       >
         <ArrowLink href="#articles" variant="outline-light">

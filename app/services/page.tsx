@@ -10,22 +10,22 @@ import { studioServices } from "@/lib/services";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Studio Services in Gqeberha | Studio GQ",
+    absolute: "Studio Services Gqeberha | Port Elizabeth | Studio GQ",
   },
   description:
-    "Explore Studio GQ services for studio hire, photography, film, podcasts, greenscreen, infinity curve, equipment and production support in Gqeberha.",
+    "Explore film, video and photography studio hire, podcast, greenscreen, infinity curve, equipment and production support in Gqeberha | Port Elizabeth, Eastern Cape.",
   alternates: { canonical: "/services" },
   openGraph: {
-    title: "Studio Services in Gqeberha | Studio GQ",
+    title: "Studio Services Gqeberha | Port Elizabeth | Studio GQ",
     description:
-      "A purpose-built production studio for photography, film, podcasts, greenscreen and content creation in Gqeberha.",
+      "A purpose-built film, video, photography, podcast and greenscreen studio in Gqeberha | Port Elizabeth, Eastern Cape.",
     url: "/services",
     images: [{ url: "/images/gallery/studio-production-wide.webp", alt: "A production team working inside Studio GQ" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Studio Services in Gqeberha | Studio GQ",
-    description: "A purpose-built production studio for photography, film, podcasts, greenscreen and content creation in Gqeberha.",
+    title: "Studio Services Gqeberha | Port Elizabeth | Studio GQ",
+    description: "Film, video, photography, podcast and greenscreen studio services in Gqeberha | Port Elizabeth, Eastern Cape.",
     images: ["/images/gallery/studio-production-wide.webp"],
   },
 };
@@ -35,8 +35,8 @@ export default function ServicesPage() {
     <main>
       <PageHero
         eyebrow="Studio services"
-        title="A space designed around the shot."
-        intro="Choose the studio, specialist facility and level of support that fits the production. Every booking starts with the brief, then builds around the work."
+        title="Studio services in Gqeberha | Port Elizabeth."
+        intro="Choose a film studio, video studio, photography studio, podcast space, greenscreen facility and level of production support for work in the Eastern Cape. Every booking starts with the brief, then builds around the shot."
       >
         <ArrowLink href="/booking" variant="outline-light">
           Book the studio

@@ -2,20 +2,26 @@ import type { MetadataRoute } from "next";
 
 import { resourceArticles } from "@/lib/resources";
 import { studioServices } from "@/lib/services";
-import { siteUrl } from "@/lib/site-content";
+import { seoContentUpdatedAt, siteUrl } from "@/lib/site-content";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
-    { url: siteUrl, changeFrequency: "monthly", priority: 1 },
-    { url: `${siteUrl}/services`, changeFrequency: "monthly", priority: 0.9 },
+    { url: siteUrl, lastModified: seoContentUpdatedAt, changeFrequency: "monthly", priority: 1 },
+    {
+      url: `${siteUrl}/services`,
+      lastModified: seoContentUpdatedAt,
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
     ...studioServices.map((service) => ({
       url: `${siteUrl}/services/${service.slug}`,
+      lastModified: seoContentUpdatedAt,
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
     {
       url: `${siteUrl}/resources`,
-      lastModified: "2026-07-31",
+      lastModified: seoContentUpdatedAt,
       changeFrequency: "weekly",
       priority: 0.9,
     },
@@ -25,8 +31,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: 0.75,
     })),
-    { url: `${siteUrl}/booking`, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${siteUrl}/privacy`, changeFrequency: "yearly", priority: 0.2 },
-    { url: `${siteUrl}/terms`, changeFrequency: "yearly", priority: 0.2 },
+    {
+      url: `${siteUrl}/booking`,
+      lastModified: seoContentUpdatedAt,
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${siteUrl}/privacy`,
+      lastModified: "2026-07-31",
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
+    {
+      url: `${siteUrl}/terms`,
+      lastModified: "2026-07-31",
+      changeFrequency: "yearly",
+      priority: 0.2,
+    },
   ];
 }

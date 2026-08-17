@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { contactDetails, footerNavigation } from "@/lib/site-content";
+import { contactDetails, footerNavigation, studioLocation } from "@/lib/site-content";
 import { NewsletterForm } from "./NewsletterForm";
 
 export function Footer() {
@@ -17,7 +17,13 @@ export function Footer() {
           <p className="site-footer__label">Contact</p>
           <a href={`mailto:${contactDetails.email}`}>{contactDetails.email}</a>
           <a href={`tel:${contactDetails.phoneHref}`}>{contactDetails.phoneDisplay}</a>
-          <p>Gqeberha, South Africa</p>
+          <address className="not-italic">
+            <a href={studioLocation.mapUrl} rel="noopener noreferrer" target="_blank">
+              {contactDetails.address.map((line) => (
+                <span className="block" key={line}>{line}</span>
+              ))}
+            </a>
+          </address>
         </div>
         <div>
           <p className="site-footer__label">Links</p>

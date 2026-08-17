@@ -48,8 +48,9 @@ export function Hero() {
 
           <Reveal delay={0.23}>
             <p className="mt-7 max-w-[590px] text-[15px] leading-7 text-white/70 sm:text-[17px] sm:leading-8">
-              Studio GQ is a purpose-built creative space in Gqeberha for film,
-              photography, podcasting, interviews, and content production.
+              Studio GQ is a purpose-built film, video and photography studio in
+              Gqeberha | Port Elizabeth, Eastern Cape, created for film,
+              videography, podcast, greenscreen and content productions.
             </p>
           </Reveal>
 

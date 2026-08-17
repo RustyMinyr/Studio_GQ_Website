@@ -176,7 +176,7 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.equal(response.status, 200);
 
   const html = await response.text();
-  assert.match(html, /<title>Studio GQ \| Film, Photography &amp; Podcast Studio in Gqeberha<\/title>/i);
+  assert.match(html, /<title>Film, Video &amp; Photography Studio Port Elizabeth \| Studio GQ<\/title>/i);
   assert.match(html, /<main[\s>]/i);
   assert.match(html, /<h1[\s>]/i);
   const primaryNav = html.match(
@@ -237,6 +237,11 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   assert.match(html, /id="learn"/i);
   assert.match(html, /href="\/services"/i);
   assert.match(html, /href="\/resources"/i);
+  const footer = html.match(/<footer[\s\S]*?<\/footer>/i)?.[0];
+  assert.ok(footer, "homepage should render a footer");
+  assert.match(footer, /href="\/services"/i);
+  assert.match(footer, /href="\/resources"/i);
+  assert.match(footer, /Gqeberha \| Port Elizabeth/i);
   assert.match(html, /Explore all services/i);
   assert.match(html, /Explore Learn/i);
   assert.match(html, /View all/i);
@@ -259,6 +264,20 @@ test("renders the compact homepage enquiry form and booking link", async () => {
   }
   assert.match(html, /bookings@studiogq\.co\.za/i);
   assert.match(html, /\+27 84 515 0956/i);
+  assert.match(html, /Gqeberha \| Port Elizabeth/i);
+  assert.match(html, /Eastern Cape/i);
+  assert.match(html, /film, video and photography studio/i);
+  assert.match(html, /videography/i);
+  assert.match(html, /greenscreen/i);
+  assert.doesNotMatch(html, /formerly/i);
+  assert.match(html, /"@type":"LocalBusiness"/i);
+  assert.match(html, /"postalCode":"6070"/i);
+  assert.match(html, /"latitude":-33\.971937/i);
+  assert.match(html, /"longitude":25\.553187/i);
+  assert.match(html, /"@type":"OpeningHoursSpecification"/i);
+  assert.match(html, /"@type":"VideoObject"/i);
+  assert.match(html, /"duration":"PT2M6S"/i);
+  assert.match(html, /studio-gq-tour\.mp4/i);
   assert.match(html, /<\/header>\s*<div[^>]*id="mobile-navigation"/i);
 });
 
@@ -291,7 +310,7 @@ test("renders the complete accessible booking portal", async () => {
   assert.match(html, /full day/i);
   assert.match(html, /R2,500/i);
   assert.match(html, /R4,500/i);
-  assert.match(html, /Gqeberha \/ Eastern Cape/i);
+  assert.match(html, /Gqeberha \| Port Elizabeth \| Eastern Cape/i);
   assert.match(html, /Production, under one roof/i);
   assert.match(html, /Production support/i);
   assert.match(html, /name="website"/i);
@@ -535,6 +554,7 @@ test("publishes canonical sitemap and robots directives", async () => {
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/booking/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/services/);
   assert.match(sitemap, /https:\/\/www\.studiogq\.co\.za\/resources/);
+  assert.match(sitemap, /<lastmod>2026-08-17<\/lastmod>/i);
   for (const route of [...serviceRoutes, ...resourceRoutes]) {
     assert.match(
       sitemap,

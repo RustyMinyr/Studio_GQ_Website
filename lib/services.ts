@@ -18,13 +18,13 @@ export type StudioService = {
 export const studioServices = [
   {
     slug: "studio-hire",
-    title: "Studio hire in Gqeberha.",
-    seoTitle: "Studio Hire in Gqeberha",
+    title: "Professional studio hire in Gqeberha | Port Elizabeth.",
+    seoTitle: "Studio Hire Gqeberha | Port Elizabeth",
     description:
-      "Hire a private, professional and adaptable creative studio in Gqeberha for film, photography, interviews, podcasts and content production.",
+      "Hire a private film, video and photography studio in Gqeberha | Port Elizabeth, Eastern Cape, for interviews, podcasts and content production.",
     eyebrow: "Studio hire",
     intro:
-      "Studio GQ is a purpose-built creative space in Gqeberha for productions that need privacy, flexibility and a professional place to work. Plan the studio around a focused portrait, a filmed interview, a podcast conversation or a larger content-production brief.",
+      "Studio GQ is a purpose-built studio in Gqeberha | Port Elizabeth for productions that need privacy, flexibility and a professional place to work. Plan the space around a focused portrait, a film or videography shoot, a podcast conversation or a larger content-production brief in the Eastern Cape.",
     sections: [
       {
         heading: "A space that adapts to the brief",
@@ -45,7 +45,7 @@ export const studioServices = [
       "On-site hair, makeup and wardrobe facilities",
       "Suitable for film, photography, podcasting, interviews and content production",
       "Online date and session selection",
-      "Located in Fairview, Gqeberha",
+      "Located in Fairview, Gqeberha | Port Elizabeth, Eastern Cape",
     ],
     relatedResourceSlugs: [
       "half-day-vs-full-day-studio-hire",
@@ -55,13 +55,13 @@ export const studioServices = [
   },
   {
     slug: "photography-film",
-    title: "Photography and film, built around the shot.",
-    seoTitle: "Photography & Film Studio in Gqeberha",
+    title: "Film, video and photography studio in Gqeberha | Port Elizabeth.",
+    seoTitle: "Film, Video & Photography Studio Port Elizabeth",
     description:
-      "A purpose-built Gqeberha studio for photography, film, interviews and content production, with adaptable spaces and production support.",
+      "A purpose-built film studio, video studio and photography studio in Gqeberha | Port Elizabeth, Eastern Cape, with adaptable spaces and production support.",
     eyebrow: "Film & photography",
     intro:
-      "Build stills and motion work in one purpose-built creative environment. Studio GQ supports photography, film, interviews and digital content with adaptable shooting space, specialist studio facilities and support arranged around the needs of the brief.",
+      "Build stills and motion work in one purpose-built creative environment. Studio GQ supports film, video, videography, photography, interviews and digital content in Gqeberha | Port Elizabeth, with specialist facilities and support arranged around the needs of each Eastern Cape production.",
     sections: [
       {
         heading: "Plan the space around the image",
@@ -92,13 +92,13 @@ export const studioServices = [
   },
   {
     slug: "podcast-studio",
-    title: "A podcast space for clear conversation.",
-    seoTitle: "Podcast Studio in Gqeberha",
+    title: "Podcast studio in Gqeberha | Port Elizabeth.",
+    seoTitle: "Podcast Studio Gqeberha | Port Elizabeth",
     description:
-      "Record podcasts, interviews and spoken-word content in an acoustically treated Gqeberha studio with equipment and production support options.",
+      "Record podcasts, filmed interviews and spoken-word content in an acoustically treated studio in Gqeberha | Port Elizabeth, Eastern Cape.",
     eyebrow: "Podcast & audio",
     intro:
-      "Studio GQ provides an acoustically treated space for podcasts, recorded interviews and other spoken-word formats. Plan the room around the number of speakers, the shape of the conversation and whether the production also needs to work on camera.",
+      "Studio GQ provides an acoustically treated podcast studio in Gqeberha | Port Elizabeth for podcasts, recorded interviews and spoken-word formats. Plan the room around the number of speakers, the conversation and whether the Eastern Cape production also needs to work on camera.",
     sections: [
       {
         heading: "Give the conversation a suitable space",
@@ -129,13 +129,13 @@ export const studioServices = [
   },
   {
     slug: "greenscreen-infinity-curve",
-    title: "Greenscreen and infinity curve.",
-    seoTitle: "Greenscreen & Infinity Curve Studio",
+    title: "Greenscreen and infinity curve studio in Gqeberha | Port Elizabeth.",
+    seoTitle: "Greenscreen Studio Gqeberha | Port Elizabeth",
     description:
-      "Shoot film, photography and digital content on Studio GQ’s greenscreen setup or seamless infinity curve in Gqeberha.",
+      "Shoot film, video, photography and digital content in a greenscreen studio or on a seamless infinity curve in Gqeberha | Port Elizabeth, Eastern Cape.",
     eyebrow: "Specialist spaces",
     intro:
-      "Create clean studio frames with a seamless infinity curve or prepare composited work in the greenscreen studio. Both facilities give film, photography and digital-content productions a controlled starting point for building the final image.",
+      "Create clean studio frames on a seamless infinity curve or prepare composited work in the Studio GQ greenscreen studio. Both facilities give film, video, photography and digital-content productions in Gqeberha | Port Elizabeth a controlled starting point for the final image.",
     sections: [
       {
         heading: "A seamless base for clean frames",
@@ -166,13 +166,13 @@ export const studioServices = [
   },
   {
     slug: "equipment-production-support",
-    title: "Build the kit around the production.",
-    seoTitle: "Studio Equipment & Production Support",
+    title: "Studio equipment and production support in the Eastern Cape.",
+    seoTitle: "Studio Equipment & Production Support Eastern Cape",
     description:
-      "Plan lighting, grip, stands, backdrops, audio, podcast equipment and production support around your Studio GQ shoot in Gqeberha.",
+      "Plan lighting, grip, stands, backdrops, audio and production support for film, video and photography shoots in Gqeberha | Port Elizabeth, Eastern Cape.",
     eyebrow: "Equipment & support",
     intro:
-      "Build the working package around the production rather than choosing equipment in isolation. Studio GQ can confirm available lighting, grip, stands, backdrops, audio and podcast equipment, then discuss additional hire or production support where the brief requires it.",
+      "Build the working package around the production rather than choosing equipment in isolation. Studio GQ can confirm available lighting, grip, stands, backdrops, audio and podcast equipment, then discuss additional hire or production support for work in Gqeberha | Port Elizabeth and across the Eastern Cape.",
     sections: [
       {
         heading: "Start with the shot and working list",

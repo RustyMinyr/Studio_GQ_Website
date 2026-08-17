@@ -6,19 +6,19 @@ import { PageHero } from "@/components/ui/PageHero";
 import { contactDetails } from "@/lib/site-content";
 
 export const metadata: Metadata = {
-  title: "Online Studio Booking",
-  description: "Check Studio GQ availability and request a half-day or full-day studio booking in Gqeberha.",
+  title: "Studio Booking Gqeberha | Port Elizabeth",
+  description: "Check availability and request half-day or full-day film, video and photography studio hire in Gqeberha | Port Elizabeth, Eastern Cape.",
   alternates: { canonical: "/booking" },
   openGraph: {
     url: "/booking",
-    title: "Book Studio GQ",
-    description: "Check availability and request a half-day or full-day studio booking in Gqeberha.",
+    title: "Book Studio GQ in Gqeberha | Port Elizabeth",
+    description: "Check availability and request film, video or photography studio hire in the Eastern Cape.",
     images: [{ url: "/og.png", width: 1200, height: 630, alt: "Studio GQ — Create Without Compromise" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Book Studio GQ",
-    description: "Check availability and request a Studio GQ session.",
+    title: "Book Studio GQ in Gqeberha | Port Elizabeth",
+    description: "Check availability and request a Studio GQ session in the Eastern Cape.",
     images: ["/og.png"],
   },
 };
@@ -28,8 +28,8 @@ export default function BookingPage() {
     <main>
       <PageHero
         eyebrow="Online booking"
-        intro="Choose an available date and session, then share the details we need to prepare the studio around your production."
-        title="Book Studio GQ."
+        intro="Choose an available date and session for film, video, photography, podcast or greenscreen studio hire in the Eastern Cape, then share the production details."
+        title="Book Studio GQ in Gqeberha | Port Elizabeth."
         tone="dark"
       />
 
