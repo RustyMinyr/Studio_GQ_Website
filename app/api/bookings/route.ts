@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/request-origin";
+import { clientKey } from "@/lib/request-rate-limit";
 
 import { bookingSchema } from "@/lib/booking-schema";
 import { notifyClientOfPendingBooking, notifyStudioOfBooking } from "@/lib/booking-email";
@@ -8,21 +10,12 @@ import {
 } from "@/lib/turso-bookings";
 import { getTursoConfig } from "@/lib/turso";
 
-const SITE_ORIGIN = "https://www.studiogq.co.za";
 const MAX_BODY_BYTES = 20_000;
 const RATE_LIMIT = 5;
 const RATE_WINDOW_SECONDS = 60;
 
 type RateEntry = { count: number; resetAt: number };
 const requestCounts = new Map<string, RateEntry>();
-
-function clientKey(request: NextRequest) {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "anonymous"
-  );
-}
 
 function rateLimit(request: NextRequest) {
   const now = Date.now();
@@ -57,17 +50,6 @@ function responseHeaders(remaining: number, resetSeconds: number) {
     "RateLimit-Reset": String(resetSeconds),
     "X-Content-Type-Options": "nosniff",
   };
-}
-
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  const requestOrigin = new URL(request.url).origin;
-
-  if (fetchSite === "cross-site") return false;
-  if (!origin) return false;
-
-  return origin === requestOrigin || origin === SITE_ORIGIN;
 }
 
 export async function POST(request: NextRequest) {

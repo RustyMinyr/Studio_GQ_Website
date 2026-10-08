@@ -52,4 +52,6 @@ The supplied imagery does not include distinct greenscreen, podcast-room, or mee
 
 ## Deployment
 
+The Coolify migration workflow and its current verification status are documented in [ops/MIGRATION.md](ops/MIGRATION.md). Use the included Dockerfile for self-hosting and a dedicated persistent SQLite mount. See [ops/SECURITY.md](ops/SECURITY.md) for the security review and remaining verification requirements.
+
 For Vercel, import the repository and use the default framework settings. Add real delivery credentials only after selecting a form provider. Canonical metadata is configured for `https://www.studiogq.co.za`.
