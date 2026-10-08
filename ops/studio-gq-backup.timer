@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily Studio GQ encrypted backup
+[Timer]
+OnCalendar=*-*-* 03:20:00 Africa/Johannesburg
+Persistent=true
+RandomizedDelaySec=300
+[Install]
+WantedBy=timers.target

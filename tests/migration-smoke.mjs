@@ -22,13 +22,17 @@ async function request(path,body,cookie='',headers={}) {
 try {
   for(let i=0;i<60;i++){try{if((await request('/api/health')).ok)break;}catch{} await new Promise(r=>setTimeout(r,250));}
   assert.equal((await request('/api/health')).status,200);
+  assert.equal((await request('/crew')).status,307,'Crew page must check runtime authentication, not a build-time setup screen');
+  assert.match(await (await request('/crew/login')).text(),/name="password"/,'Runtime login form is rendered');
   for(const path of ['/','/booking','/services','/resources','/privacy','/terms','/sitemap.xml','/robots.txt']) assert.equal((await request(path)).status,200,path);
   assert.equal((await request('/api/crew/session',{password},{},{Origin:'https://attacker.example'})).status,403);
   assert.equal((await request('/api/crew/session',{password:'wrong'})).status,401);
   const login=await request('/api/crew/session',{password});assert.equal(login.status,200);
   const setCookie=login.headers.get('set-cookie');assert.match(setCookie,/HttpOnly/i);assert.match(setCookie,/Secure/i);assert.match(setCookie,/SameSite=strict/i);
   const cookie=setCookie.split(';')[0];
-  assert.equal((await request('/crew',undefined,cookie)).status,200);
+  const dashboard=await request('/crew',undefined,cookie);
+  assert.equal(dashboard.status,200);
+  assert.doesNotMatch(await dashboard.text(),/Booking management is almost ready/,'Authenticated page must render the dashboard');
   const dates=['2040-03-11','2040-03-12'];
   const booking={requestId:randomUUID(),dates,session:'morning',name:'Migration Test',company:'Controlled test',email:'migration@example.com',phone:'+27845150956',additionalItems:[],message:''};
   const saved=await request('/api/bookings',booking);assert.equal(saved.status,201,await saved.text());

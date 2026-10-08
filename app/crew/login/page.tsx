@@ -4,6 +4,8 @@ import Link from "next/link";
 import { CrewLoginForm } from "@/components/crew-auth/CrewLoginForm";
 import { getCrewAuthState } from "@/lib/crew-auth";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Crew Portal Login",
   description: "Sign in to manage Studio GQ bookings.",

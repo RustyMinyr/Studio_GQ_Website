@@ -24,7 +24,7 @@ export default function PrivacyPage() {
       <article className="bg-[#f7f7f5] px-5 py-20 text-[#050505] md:px-8 md:py-28 lg:px-12">
         <div className="mx-auto max-w-3xl space-y-10 leading-7 text-[#565656]">
           <p className="text-sm font-medium uppercase tracking-[0.14em] text-[#777]">
-            Last updated: 31 July 2026
+            Last updated: 8 October 2026
           </p>
 
           <section>
@@ -65,8 +65,10 @@ export default function PrivacyPage() {
           <section>
             <h2 className="mb-4 text-2xl font-normal text-[#050505]">Service providers and transfers</h2>
             <p>
-              The website uses Vercel for hosting, Turso for booking data and Resend for
-              transactional email. Where enabled, selected booking information may also be
+              The website uses Studio GQ&apos;s managed server for hosting and booking data,
+              Resend for transactional email and encrypted off-server backups with Backblaze.
+              Previous Vercel and Turso services may be retained temporarily for migration
+              recovery. Where enabled, selected booking information may also be
               shared with Studio GQ&apos;s connected production-management system so the team can
               manage the work. These providers act only to supply their services, but they may
               process information outside South Africa. We select reputable providers and use

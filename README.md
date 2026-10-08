@@ -20,20 +20,20 @@ npm run lint
 npm run build
 ```
 
-The App Router source is compatible with Vercel. The repository also retains the vinext/Sites adapter used for the included private deployment workflow.
+The App Router runs on Next.js. `npm test` builds it and checks the booking/security flow against a new isolated test database with all email disabled. Historical Worker tests in `tests/rendered-html.test.mjs` are not part of this runtime.
 
-## Turso booking system
+## Booking system
 
-The dedicated `/booking` portal loads occupied studio slots from `/api/availability` and submits reservations to `/api/bookings`. The homepage contact section remains a short email enquiry form for people who are not ready to choose a date. Customer details stay server-side. Turso stores one booking record per selected day plus unique morning and afternoon slot rows, so morning, afternoon, and full-day reservations cannot overlap.
+The dedicated `/booking` portal loads occupied studio slots from `/api/availability` and submits reservations to `/api/bookings`. The homepage contact section remains a short email enquiry form. Customer details stay server-side. Site-isolated SQLite stores one booking per day plus unique morning/afternoon reservations, preventing overlaps. Do not configure Turso credentials in the new hosted runtime.
 
-To connect Turso:
+For local development:
 
-1. Set `TURSO_DATABASE_URL` and `TURSO_AUTH_TOKEN` as server-side environment variables using `.env.example` as the reference.
-2. Run `npm run turso:migrate` once after adding the same values to `.env.local`.
+1. Use `.env.example` as the reference. Create an empty local database with `node scripts/init-local-database.mjs .migration/local.db`, then set its absolute path as `STUDIO_DATABASE_PATH` in `.env.local`.
+2. Set `APP_ORIGIN` to the exact local origin and `EMAIL_DELIVERY_DISABLED=1` for testing.
 3. Set `CREW_PORTAL_EMAIL`, `CREW_PORTAL_PASSWORD`, and `CREW_SESSION_SECRET` for the one shared crew identity.
 4. Restart the local server or redeploy the site.
 
-The Turso token and crew credentials must never be exposed through a `NEXT_PUBLIC_` variable or committed to source control. If the database is not configured, the calendar reports that live availability is unavailable and the API refuses to create a booking rather than presenting unverified dates as open.
+Crew and email credentials must never use `NEXT_PUBLIC_` names or enter source control. A missing database fails closed. The Turso adapter and migration commands remain available only for the previous deployment and rollback.
 
 Published studio rates are R2,500 for a four-hour morning or afternoon session and R4,500 for a ten-hour full day, excluding gear.
 
@@ -54,4 +54,4 @@ The supplied imagery does not include distinct greenscreen, podcast-room, or mee
 
 The Coolify migration workflow and its current verification status are documented in [ops/MIGRATION.md](ops/MIGRATION.md). Use the included Dockerfile for self-hosting and a dedicated persistent SQLite mount. See [ops/SECURITY.md](ops/SECURITY.md) for the security review and remaining verification requirements.
 
-For Vercel, import the repository and use the default framework settings. Add real delivery credentials only after selecting a form provider. Canonical metadata is configured for `https://www.studiogq.co.za`.
+Canonical metadata remains `https://www.studiogq.co.za`. Keep old Vercel/Turso resources until the migration gates and rollback window are complete.

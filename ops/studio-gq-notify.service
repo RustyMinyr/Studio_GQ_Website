@@ -1,0 +1,5 @@
+[Unit]
+Description=Studio GQ sanitized backup failure alert
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/notify-studio-gq failure

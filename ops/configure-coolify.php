@@ -5,8 +5,10 @@ $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
 $runtime=json_decode(file_get_contents('/tmp/sgq-runtime.json'),true,512,JSON_THROW_ON_ERROR);
 $template=App\Models\Application::where('uuid','nisrzrcmiovakeykswg1b8nr')->firstOrFail();
 $project=App\Models\Project::firstOrCreate(['name'=>'Studio GQ','team_id'=>0],['uuid'=>Illuminate\Support\Str::random(24),'description'=>'Studio GQ website, isolated SQLite bookings and encrypted recovery']);
+$project->uuid=strtolower($project->uuid);$project->save();
 foreach(['staging','production'] as $mode) {
  $environment=App\Models\Environment::firstOrCreate(['project_id'=>$project->id,'name'=>$mode],['uuid'=>Illuminate\Support\Str::random(24)]);
+ $environment->uuid=strtolower($environment->uuid);$environment->save();
  $destination=App\Models\StandaloneDocker::firstOrCreate(['server_id'=>0,'network'=>'studio-gq-'.$mode],['name'=>'Studio GQ '.$mode,'uuid'=>Illuminate\Support\Str::random(24)]);
  $a=App\Models\Application::where('environment_id',$environment->id)->where('name','studio-gq-'.$mode)->first();
  if(!$a) {
@@ -18,6 +20,7 @@ foreach(['staging','production'] as $mode) {
    $a->custom_docker_run_options=null;$a->health_check_path='/api/health';$a->health_check_port='3000';$a->save();
  }
  $a->settings->is_consistent_container_name_enabled=true;
+ $a->uuid=strtolower($a->uuid);$a->save();
  $a->settings->is_preview_deployments_enabled=false;
  $a->settings->is_auto_deploy_enabled=false;$a->settings->save();
  App\Models\EnvironmentVariable::withoutEvents(function()use($a,$runtime,$mode){
