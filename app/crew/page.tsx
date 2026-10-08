@@ -7,6 +7,8 @@ import { CrewSetupState } from "@/components/crew/CrewSetupState";
 import { crewLoginUrl, getCrewAuthState, getCrewSession } from "@/lib/crew-auth";
 import { getCrewDashboard } from "@/lib/crew-bookings";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Crew Portal",
   robots: { index: false, follow: false },

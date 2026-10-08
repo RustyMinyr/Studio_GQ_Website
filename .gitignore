@@ -45,3 +45,9 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+/.secrets/
+/.migration/
+/data/
+/marketing/
+/branding/
+/output/

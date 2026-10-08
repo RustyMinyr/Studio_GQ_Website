@@ -7,6 +7,8 @@ import { CrewCalendarBlocker } from "@/components/crew/CrewCalendarBlocker";
 import { CrewPortalHeader } from "@/components/crew/CrewPortalHeader";
 import { CrewSetupState } from "@/components/crew/CrewSetupState";
 import { crewLoginUrl, getCrewAuthState, getCrewSession } from "@/lib/crew-auth";
+
+export const dynamic = "force-dynamic";
 import { getCrewCalendar } from "@/lib/crew-bookings";
 
 export const metadata: Metadata = {

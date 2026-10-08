@@ -74,7 +74,7 @@ function requireConfig(): TursoConfig {
   const config = getTursoConfig();
   if (!config) {
     throw new CrewBookingError(
-      "The crew portal is not connected to Turso yet.",
+      "The crew booking database is not available yet.",
       "configuration",
     );
   }
