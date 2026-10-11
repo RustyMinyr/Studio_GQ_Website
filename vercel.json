@@ -1,5 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "npm run build:vercel"
+  "buildCommand": "npm run build:vercel",
+  "rewrites": [
+    {
+      "source": "/.well-known/acme-challenge/:token",
+      "destination": "http://41.222.37.16/.well-known/acme-challenge/:token"
+    }
+  ]
 }
