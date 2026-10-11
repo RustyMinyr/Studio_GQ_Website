@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { isMigrationReadOnly } from "@/lib/migration-mode";
 
 import type { Row, Transaction } from "@tursodatabase/serverless/compat";
 
@@ -247,6 +248,7 @@ async function rollbackQuietly(transaction: Transaction) {
 }
 
 async function releaseExpiredHolds(config: TursoConfig) {
+  if (isMigrationReadOnly()) return;
   const client = getTursoClient(config);
   try {
     const now = nowIso();

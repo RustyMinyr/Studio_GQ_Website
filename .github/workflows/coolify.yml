@@ -23,4 +23,5 @@ jobs:
       - run: npm run build:vercel
       - run: node scripts/init-local-database.mjs .migration/ci.db
       - run: node tests/migration-smoke.mjs .migration/ci.db
+      - run: node tests/migration-readonly.mjs .migration/ci.db
       - run: docker build --build-arg SOURCE_COMMIT=${{ github.sha }} -t studio-gq-test .
