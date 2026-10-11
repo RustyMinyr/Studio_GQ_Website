@@ -34,7 +34,7 @@ assert.ok(limits2.some(r=>limits1.some(old=>old.key===r.key&&r.count===old.count
 const login=await request('/api/crew/session',{password:process.env.CREW_PORTAL_PASSWORD});
 assert.equal(login.status,200,'Preserved crew login');
 const session=login.headers.get('set-cookie');
-assert.match(session,/HttpOnly/i);assert.match(session,/Secure/i);assert.match(session,/SameSite=strict/i);
+assert.ok(/HttpOnly/i.test(session),'HttpOnly cookie missing');assert.ok(/Secure/i.test(session),'Secure cookie missing');assert.ok(/SameSite=strict/i.test(session),'SameSite cookie missing');
 const cookie=session.split(';')[0];
 const dashboard=await request('/crew',undefined,cookie);assert.equal(dashboard.status,200);
 assert.doesNotMatch(await dashboard.text(),/Booking management is almost ready/);
