@@ -21,6 +21,27 @@ try {
       await tx.commit();
       console.log(`Studio GQ table write freeze: ${mode === 'freeze' ? 'enabled' : 'removed'}`);
     } catch(e) {await tx.rollback(); throw e;}
+  } else if (mode === 'verify-freeze') {
+    const tx = await client.transaction('write');
+    try {
+      const triggers = await tx.execute("select name from sqlite_master where type='trigger' and name like 'sgq_migration_freeze_%'");
+      const names = new Set(triggers.rows.map(row => row.name));
+      for (const table of tables) for (const operation of ['insert','update','delete']) {
+        if (!names.has(`sgq_migration_freeze_${table}_${operation}`)) throw new Error('A required source freeze trigger is missing');
+      }
+      let rejected = false;
+      // UPDATE id=id changes no values; rollback also protects the source if a trigger is broken.
+      const existing = await tx.execute('select id from studio_bookings limit 1');
+      if (!existing.rows.length) throw new Error('No source booking exists for the controlled no-op freeze proof');
+      try {
+        await tx.execute({sql:'update studio_bookings set id=id where id=?',args:[existing.rows[0].id]});
+      } catch (error) {
+        if (!String(error?.message).includes('Studio GQ migration write freeze')) throw error;
+        rejected = true;
+      }
+      if (!rejected) throw new Error('Source freeze did not reject the controlled no-op mutation');
+      console.log('PASS: all 12 source freeze triggers exist; controlled no-op mutation was rejected.');
+    } finally { if (!tx.closed) await tx.rollback(); }
   } else if (mode === 'export') {
     const output = resolve(process.argv[3] || '.migration/source.db');
     if (!output.startsWith(resolve('.migration') + (process.platform === 'win32' ? '\\' : '/'))) throw new Error('Export must stay in ignored .migration directory');
@@ -53,5 +74,5 @@ try {
       writeFileSync(output + '.evidence.json',JSON.stringify(evidence,null,2),{mode:0o600});
       console.log(JSON.stringify({snapshot:output,tables:evidence,integrity:'ok',foreignKeys:'ok'},null,2));
     } finally {if (!tx.closed) await tx.rollback(); db.close();}
-  } else throw new Error('Usage: export <.migration/path.db> | freeze | thaw');
+  } else throw new Error('Usage: export <.migration/path.db> | freeze | verify-freeze | thaw');
 } finally {client.close();}
