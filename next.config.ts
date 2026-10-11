@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 import { createSecurityHeaders } from "./lib/security-headers";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   images: {
     formats: ["image/avif", "image/webp"],
     // Source photography is pre-optimised to responsive WebP assets so both

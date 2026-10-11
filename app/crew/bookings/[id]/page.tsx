@@ -5,6 +5,8 @@ import { CrewBookingDetail } from "@/components/crew/CrewBookingDetail";
 import { CrewPortalHeader } from "@/components/crew/CrewPortalHeader";
 import { CrewSetupState } from "@/components/crew/CrewSetupState";
 import { crewLoginUrl, getCrewAuthState, getCrewSession } from "@/lib/crew-auth";
+
+export const dynamic = "force-dynamic";
 import { getCrewBooking } from "@/lib/crew-bookings";
 
 export const metadata: Metadata = {

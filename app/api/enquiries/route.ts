@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/request-origin";
+import { clientKey } from "@/lib/request-rate-limit";
 
 import { notifyStudioOfEnquiry } from "@/lib/enquiry-email";
 import { enquirySchema } from "@/lib/enquiry-schema";
 
-const SITE_ORIGIN = "https://www.studiogq.co.za";
 const MAX_BODY_BYTES = 12_000;
 const RATE_LIMIT = 6;
 const RATE_WINDOW_SECONDS = 60;
 
 type RateEntry = { count: number; resetAt: number };
 const requestCounts = new Map<string, RateEntry>();
-
-function clientKey(request: NextRequest) {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "anonymous"
-  );
-}
 
 function rateLimit(request: NextRequest) {
   const now = Date.now();
@@ -51,15 +44,6 @@ function responseHeaders(remaining: number, resetSeconds: number) {
     "RateLimit-Reset": String(resetSeconds),
     "X-Content-Type-Options": "nosniff",
   };
-}
-
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  const requestOrigin = new URL(request.url).origin;
-
-  if (fetchSite === "cross-site" || !origin) return false;
-  return origin === requestOrigin || origin === SITE_ORIGIN;
 }
 
 export async function POST(request: NextRequest) {

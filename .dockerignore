@@ -1,0 +1,16 @@
+node_modules
+.git
+.next
+dist
+.env*
+!.env.example
+.secrets
+.migration
+data
+marketing
+branding
+output
+outputs
+.vercel
+.pnpm-store
+*.log

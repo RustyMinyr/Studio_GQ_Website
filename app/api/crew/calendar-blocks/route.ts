@@ -1,16 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/request-origin";
 
 import { createCrewCalendarBlock, CrewBookingError } from "@/lib/crew-bookings";
 import { getCrewSession } from "@/lib/crew-auth";
 import type { BookingSession } from "@/lib/booking-schema";
 
 const MAX_BODY_BYTES = 5_000;
-
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  return Boolean(origin) && fetchSite !== "cross-site" && origin === new URL(request.url).origin;
-}
 
 function isBookingSession(value: unknown): value is BookingSession {
   return value === "morning" || value === "afternoon" || value === "full_day";

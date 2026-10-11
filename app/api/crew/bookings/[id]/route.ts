@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/request-origin";
 
 import {
   cancelCrewBooking,
@@ -23,12 +24,6 @@ type CrewBookingAction =
   | { action: "cancel" }
   | { action: "reschedule"; date: string; session: BookingSession };
 
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  return Boolean(origin) && fetchSite !== "cross-site" && origin === new URL(request.url).origin;
-}
-
 function responseHeaders() {
   return {
     "Cache-Control": "no-store",
@@ -50,11 +45,13 @@ function parseQuote(value: unknown): BookingQuoteAttachment | null | undefined {
   const byteLength = Math.floor((content.length * 3) / 4) - (content.endsWith("==") ? 2 : content.endsWith("=") ? 1 : 0);
   if (
     !filename.toLowerCase().endsWith(".pdf") ||
+    /[\\/\r\n\x00]/.test(filename) ||
     filename.length < 5 ||
     filename.length > 180 ||
     !PDF_BASE64_PATTERN.test(content) ||
     byteLength < 1 ||
-    byteLength > MAX_QUOTE_BYTES
+    byteLength > MAX_QUOTE_BYTES ||
+    Buffer.from(content, "base64").subarray(0, 5).toString() !== "%PDF-"
   ) {
     return null;
   }

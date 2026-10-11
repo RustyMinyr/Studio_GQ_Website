@@ -9,7 +9,7 @@ export type StudioEmailConfig = {
 
 export type StudioEmailResult =
   | { sent: true; reason: "sent" }
-  | { sent: false; reason: "not_configured" | "missing_recipient" | "failed" };
+  | { sent: false; reason: "not_configured" | "missing_recipient" | "failed" | "disabled" };
 
 export type StudioEmailAttachment = {
   filename: string;
@@ -46,6 +46,7 @@ export async function sendStudioEmail(
     attachments?: StudioEmailAttachment[];
   },
 ): Promise<StudioEmailResult> {
+  if (process.env.EMAIL_DELIVERY_DISABLED === "1") return { sent: false, reason: "disabled" };
   try {
     const response = await fetch(RESEND_API_URL, {
       method: "POST",

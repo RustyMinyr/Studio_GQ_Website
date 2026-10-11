@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isSameOrigin } from "@/lib/request-origin";
+import { clientKey, crewLoginRateLimit } from "@/lib/request-rate-limit";
 
 import {
   CREW_SESSION_COOKIE,
@@ -14,14 +16,6 @@ const RATE_WINDOW_SECONDS = 15 * 60;
 type RateEntry = { count: number; resetAt: number };
 const requestCounts = new Map<string, RateEntry>();
 
-function clientKey(request: NextRequest) {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "anonymous"
-  );
-}
-
 function rateLimit(request: NextRequest) {
   const now = Date.now();
   const key = clientKey(request);
@@ -32,17 +26,13 @@ function rateLimit(request: NextRequest) {
       : { count: previous.count + 1, resetAt: previous.resetAt };
 
   requestCounts.set(key, current);
+  for (const [entryKey, entry] of requestCounts) {
+    if (entry.resetAt <= now) requestCounts.delete(entryKey);
+  }
   return {
     allowed: current.count <= RATE_LIMIT,
     resetSeconds: Math.max(1, Math.ceil((current.resetAt - now) / 1_000)),
   };
-}
-
-function isSameOrigin(request: NextRequest) {
-  const origin = request.headers.get("origin");
-  const fetchSite = request.headers.get("sec-fetch-site");
-  if (fetchSite === "cross-site" || !origin) return false;
-  return origin === new URL(request.url).origin;
 }
 
 function responseHeaders() {
@@ -54,7 +44,7 @@ function responseHeaders() {
 
 export async function POST(request: NextRequest) {
   const headers = responseHeaders();
-  const limit = rateLimit(request);
+  const limit = await crewLoginRateLimit(request) ?? rateLimit(request);
 
   if (!limit.allowed) {
     return NextResponse.json(
