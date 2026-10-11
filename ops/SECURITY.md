@@ -1,5 +1,7 @@
 # Migration security review — 8 October 2026
 
+Current 11 October cutover status supersedes historical pending notes below: final source freeze/no-op rejection, frozen record-digest comparison, stopped-writer installation, `main` deployment, encrypted final backup/restore and web-only DNS changes passed. Target and source remain read-only. Trusted public TLS is still pending because certificate validators used old cached Vercel addresses; no certificate validation was bypassed. Public proxy spoofing/auth/email/persistence tests are prepared but not yet executed on the canonical new host. DASU panels and independent outage coverage remain deferred by the owner. See `ops/MIGRATION.md` for the exact launch gate and recovery authority.
+
 | Finding | Severity | Evidence and action |
 | --- | --- | --- |
 | Outdated Next.js runtime and transitive packages | Critical/High | Registry audit identified multiple advisories in 16.2.6. Upgraded to 16.4.0, applied compatible patches and constrained ws. Runtime audit now reports zero vulnerabilities; production build and application tests pass. |

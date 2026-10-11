@@ -3,7 +3,7 @@ import { readdirSync,readFileSync,writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join,relative } from 'node:path';
 const origin=process.argv[2];
-if(origin!=='http://localhost:3042')throw new Error('This test targets the private migration tunnel only.');
+if(!['http://localhost:3042','https://www.studiogq.co.za'].includes(origin))throw new Error('This test targets only Studio GQ private or public deployments.');
 const routes=['/','/booking','/services','/resources','/privacy','/terms',
 '/services/studio-hire','/services/photography-film','/services/podcast-studio','/services/greenscreen-infinity-curve','/services/equipment-production-support',
 '/resources/studio-lighting-basics','/resources/stills-vs-video-lighting','/resources/clean-interview-sound','/resources/podcast-studio-setup-guide',
@@ -24,6 +24,7 @@ for(const [path,destination] of Object.entries({'/about':'/#about','/spaces':'/#
 }
 assert.equal((await fetch(origin+'/crew',{redirect:'manual'})).status,307);
 const health=await (await fetch(origin+'/api/health')).json();assert.equal(health.status,'ok');
+if (process.argv[3]) {assert.match(process.argv[3],/^[0-9a-f]{40}$/);assert.equal(health.commit,process.argv[3]);}
 let files=0,bytes=0;
 async function walk(folder){for(const entry of readdirSync(folder,{withFileTypes:true})){
   const path=join(folder,entry.name);if(entry.isDirectory())await walk(path);else if(entry.isFile()){
