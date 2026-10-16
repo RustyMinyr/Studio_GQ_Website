@@ -104,6 +104,15 @@ live version matching the intended commit. `--timeout` bounds polling (default
 900 seconds, maximum 7200); `--interval` defaults to five seconds. Transient GET
 failures are retried within polling. PATCH and POST are **never retried**.
 
+Coolify 4.4.6 records a null image tag for normal deployments; `docker_tag` is
+restricted to previews. The client accepts that native response only for Docker
+Image applications and a deployment created within -30/+300 seconds of its
+recorded trigger. Application, server, destination, healthy runtime and live
+commit checks remain mandatory. Receipts name this verification method and set
+`runtime_digest_inspected: false`: the API proves the configured digest and
+successful release, but does not expose the running container's Docker digest.
+Retain a separate Docker inspection when independent digest proof is required.
+
 ## Recovery and operating requirements
 
 - Store receipts as durable CI artifacts **even on failure or cancellation**.
@@ -140,7 +149,7 @@ failures are retried within polling. PATCH and POST are **never retried**.
 Run the isolated test suite (no server or credentials used):
 
 ```sh
-python -m unittest discover -s tests -v
+python -m unittest discover -s ops/deployment -p 'test_*.py' -v
 ```
 
 API references: [application PATCH](https://coolify.io/docs/api/endpoints/applications/update-application-by-uuid),

@@ -378,8 +378,22 @@ class ReleaseClient:
         require(str(row.get("server_id")) == receipt.get("server_id") == str(self.cfg["expected_server_id"])
                 and str(row.get("destination_id")) == receipt.get("destination_id")
                 == str(self.cfg["expected_fields"]["destination_id"]), "Deployment server or destination mismatch")
-        require(row.get("docker_registry_image_tag") == receipt["target_tag"], "Deployment image identity mismatch")
-        require(row.get("pull_request_id") in {0, "0", None}, "Preview deployment cannot verify production")
+        require(row.get("pull_request_id") in {0, "0"}, "Preview or unidentified deployment cannot verify production")
+        recorded_tag = row.get("docker_registry_image_tag")
+        if recorded_tag is None:
+            # Coolify 4.4.6 stores docker_tag only for previews. Normal image
+            # deployments resolve the application's configured tag/digest.
+            require(self.cfg["expected_fields"].get("build_pack") == "dockerimage",
+                    "Missing image tag is supported only for Docker Image deployments")
+            try:
+                created = datetime.fromisoformat(row["created_at"].replace("Z", "+00:00"))
+                triggered = datetime.fromisoformat(receipt["trigger_requested_at"])
+                require(-30 <= (created - triggered).total_seconds() <= 300,
+                        "Deployment time does not match the recorded trigger")
+            except (AttributeError, KeyError, TypeError, ValueError):
+                raise ReleaseError("Cannot verify deployment creation time") from None
+        else:
+            require(recorded_tag == receipt["target_tag"], "Deployment image identity mismatch")
         return row
 
     def poll(self, path, receipt):
@@ -395,13 +409,18 @@ class ReleaseClient:
                     raise ReleaseError("Deployment failed or was cancelled; receipt retained for explicit recovery")
                 if status == "finished":
                     self._state(path, receipt, "verifying", deployment_status=status)
-                    self.app(receipt["target_tag"], timeout=max(0.001, deadline - self.clock()))
+                    app = self.app(receipt["target_tag"], timeout=max(0.001, deadline - self.clock()))
                     try:
                         observed = self.version(timeout=max(0.001, deadline - self.clock()))
                     except ReleaseError:
                         observed = None
-                    if observed == receipt["target_commit"]:
-                        self._state(path, receipt, "verified", verified_at=utc_now())
+                    if app.get("status") == "running:healthy" and observed == receipt["target_commit"]:
+                        reference = (receipt["image"] + "@" + receipt["target_tag"].replace("sha256-", "sha256:", 1)
+                                     if STORED_DIGEST.fullmatch(receipt["target_tag"])
+                                     else receipt["image"] + ":" + receipt["target_tag"])
+                        self._state(path, receipt, "verified", verified_at=utc_now(),
+                                    verification_method="finished_deployment_configured_image_and_live_commit",
+                                    configured_image_reference=reference, runtime_digest_inspected=False)
                         return receipt
             except TransportError as exc:
                 if not exc.retryable:
