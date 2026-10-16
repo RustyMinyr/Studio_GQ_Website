@@ -10,7 +10,11 @@ export async function GET() {
   const client = getTursoClient(config);
   try {
     await client.execute("select id from studio_bookings limit 1");
-    return NextResponse.json({ status: "ok", commit: process.env.SOURCE_COMMIT ?? "unknown" }, {
+    const imageCommit = process.env.IMAGE_SOURCE_COMMIT;
+    const commit = imageCommit && imageCommit !== "unknown"
+      ? imageCommit
+      : process.env.SOURCE_COMMIT ?? "unknown";
+    return NextResponse.json({ status: "ok", commit }, {
       headers: { "Cache-Control": "no-store" },
     });
   } catch {

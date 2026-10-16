@@ -57,6 +57,7 @@ jobs:
             --mount "type=bind,source=$runtime_dir,target=/app/data" \
             -e STUDIO_DATABASE_PATH=/app/data/smoke.db \
             -e APP_ORIGIN=http://127.0.0.1:3000 \
+            -e SOURCE_COMMIT=platform-generated-placeholder \
             -e EMAIL_DELIVERY_DISABLED=1 -e RESEND_API_KEY= \
             -e TURSO_DATABASE_URL= -e TURSO_AUTH_TOKEN= \
             -e FORJDECK_INTEGRATION_SECRET= -e FORJDECK_ALLOWED_ORGANIZATION_ID= \
@@ -84,7 +85,8 @@ jobs:
           }
           assert.ok(health, 'The final image must start and connect to its isolated database');
           assert.equal(health.status, 'ok');
-          assert.equal(health.commit, process.env.EXPECTED_COMMIT, 'Version must come from the image, not a runtime override');
+          assert.equal(process.env.SOURCE_COMMIT, 'platform-generated-placeholder');
+          assert.equal(health.commit, process.env.EXPECTED_COMMIT, 'The image commit must survive a platform SOURCE_COMMIT override');
           for (const path of ['/', '/booking', '/crew/login']) assert.equal((await request(path)).status, 200, path);
           assert.equal((await request('/crew')).status, 307, 'Anonymous crew access must be denied');
           const login = await request('/api/crew/session', { password: process.env.CREW_PORTAL_PASSWORD });

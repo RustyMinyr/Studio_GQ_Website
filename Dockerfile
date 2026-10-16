@@ -5,14 +5,14 @@ COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
 ARG SOURCE_COMMIT=unknown
-ENV SOURCE_COMMIT=$SOURCE_COMMIT
+ENV SOURCE_COMMIT=$SOURCE_COMMIT IMAGE_SOURCE_COMMIT=$SOURCE_COMMIT
 RUN npm run build:vercel
 
 FROM node:24-bookworm-slim AS runtime
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 PORT=3000 HOSTNAME=0.0.0.0
 ARG SOURCE_COMMIT=unknown
-ENV SOURCE_COMMIT=$SOURCE_COMMIT
+ENV SOURCE_COMMIT=$SOURCE_COMMIT IMAGE_SOURCE_COMMIT=$SOURCE_COMMIT
 LABEL org.opencontainers.image.source="https://github.com/RustyMinyr/Studio_GQ_Website" \
       org.opencontainers.image.revision=$SOURCE_COMMIT
 RUN mkdir -p /app/data && chown node:node /app/data
