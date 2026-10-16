@@ -37,6 +37,8 @@ jobs:
       - run: node scripts/init-local-database.mjs .migration/ci.db
       - run: node tests/migration-smoke.mjs .migration/ci.db
       - run: node tests/migration-readonly.mjs .migration/ci.db
+      - name: Check release artifact provenance guards without credentials
+        run: python3 -m unittest discover -s ops/deployment -p 'test_*.py' -v
       - run: docker build --build-arg SOURCE_COMMIT=${{ github.sha }} -t studio-gq-test .
       - name: Verify the final container with an isolated database
         shell: bash

@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "coolify_api_url": "http://100.126.103.40:8000/api/v1",
+  "allow_private_http": true,
+  "sites": {
+    "studio-gq-staging": {
+      "application_uuid": "i6niok9h83f4nijpfjw3o8xh",
+      "repository": "RustyMinyr/Studio_GQ_Website",
+      "image": "ghcr.io/rustyminyr/studio_gq_website",
+      "expected_fields": {
+        "name": "studio-gq-staging",
+        "build_pack": "dockerimage",
+        "git_repository": "RustyMinyr/Studio_GQ_Website",
+        "git_branch": "codex/studio-gq-coolify",
+        "destination_id": 2,
+        "environment_id": 8
+      },
+      "image_reference_mode": "digest",
+      "expected_server_id": 0,
+      "verification": {
+        "health_url": "http://100.126.103.40:3042/api/health",
+        "version_url": "http://100.126.103.40:3042/api/health",
+        "json_key": "commit"
+      }
+    }
+  }
+}

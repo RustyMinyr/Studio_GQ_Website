@@ -3,7 +3,7 @@ name: Publish verified Studio GQ image
 on:
   workflow_dispatch:
   push:
-    branches: [codex/immutable-image-pilot]
+    branches: [main, codex/immutable-image-pilot]
 
 permissions:
   contents: read

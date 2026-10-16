@@ -1,0 +1,128 @@
+name: Deploy or recover Studio GQ staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Deploy a published image, resume an interrupted attempt, or roll back a recorded release.
+        required: true
+        type: choice
+        options: [deploy, resume, rollback]
+      source_run_id:
+        description: Successful publication run for deploy; deployment receipt run for resume or rollback.
+        required: true
+        type: string
+      source_run_attempt:
+        description: Exact attempt number containing the source artifact.
+        required: true
+        type: string
+        default: '1'
+      expected_current_tag:
+        description: Deploy only. Approved existing sha256- digest or full commit tag from the prior release.
+        required: false
+        type: string
+      deployment_uuid:
+        description: Resume only. Verified deployment UUID when the original POST response was lost.
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-gq-staging-release
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  select:
+    if: github.repository == 'RustyMinyr/Studio_GQ_Website' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      approved_artifact_id: ${{ steps.approved.outputs.artifact-id }}
+      request_sha: ${{ steps.validate.outputs.request_sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - name: Select only a trusted main workflow artifact
+        id: select
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_OPERATION: ${{ inputs.operation }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_RUN_ATTEMPT: ${{ inputs.source_run_attempt }}
+          EXPECTED_CURRENT_TAG: ${{ inputs.expected_current_tag }}
+          RECOVER_DEPLOYMENT_UUID: ${{ inputs.deployment_uuid }}
+          SELECTED_ARTIFACT_DIR: ${{ runner.temp }}/selected-artifact
+        run: python3 ops/deployment/github_release.py select --artifact-dir "$SELECTED_ARTIFACT_DIR"
+      - name: Validate the selected manifest or receipt
+        id: validate
+        env:
+          SELECTED_ARTIFACT_DIR: ${{ runner.temp }}/selected-artifact
+        run: python3 ops/deployment/github_release.py validate --artifact-dir "$SELECTED_ARTIFACT_DIR"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        id: approved
+        with:
+          name: studio-gq-approved-request-${{ github.run_id }}-${{ github.run_attempt }}
+          path: approved/request.json
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    needs: select
+    if: github.repository == 'RustyMinyr/Studio_GQ_Website' && github.ref == 'refs/heads/main'
+    environment: coolify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ needs.select.outputs.approved_artifact_id }}
+          path: ${{ runner.temp }}/approved-request
+          merge-multiple: true
+      - name: Verify the approved request before entering the private network
+        env:
+          APPROVED_REQUEST_SHA: ${{ needs.select.outputs.request_sha }}
+          APPROVED_REQUEST_PATH: ${{ runner.temp }}/approved-request/request.json
+          TS_OIDC_CLIENT_ID: ${{ vars.TS_OIDC_CLIENT_ID }}
+          TS_OIDC_AUDIENCE: ${{ vars.TS_OIDC_AUDIENCE }}
+        run: python3 ops/deployment/github_release.py verify-request --request "$APPROVED_REQUEST_PATH"
+      - name: Connect an ephemeral deployment identity
+        uses: tailscale/github-action@d1b6cd204f8dceda5b3eaad7f1f767be390056cd # v4
+        with:
+          oauth-client-id: ${{ vars.TS_OIDC_CLIENT_ID }}
+          audience: ${{ vars.TS_OIDC_AUDIENCE }}
+          tags: tag:coolify-ci
+          ping: 100.126.103.40
+          version: 1.94.2
+          use-cache: false
+      - name: Execute only the approved staging operation
+        id: release
+        env:
+          APPROVED_REQUEST_SHA: ${{ needs.select.outputs.request_sha }}
+          APPROVED_REQUEST_PATH: ${{ runner.temp }}/approved-request/request.json
+          COOLIFY_READ_TOKEN: ${{ secrets.COOLIFY_READ_TOKEN }}
+          COOLIFY_WRITE_TOKEN: ${{ inputs.operation != 'resume' && secrets.COOLIFY_WRITE_TOKEN || '' }}
+        run: python3 ops/deployment/github_release.py execute --request "$APPROVED_REQUEST_PATH" --output-dir receipts
+      - name: Retain the receipt even when deployment or verification fails
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: studio-gq-staging-receipt-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            receipts/receipt.json
+            receipts/workflow.json
+          if-no-files-found: warn
+          retention-days: 90

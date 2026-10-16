@@ -1,10 +1,12 @@
 # Studio GQ image releases
 
-Run **Publish verified Studio GQ image** manually from the intended Git ref. The workflow runs the existing Coolify checks first, transfers their exact Docker image through a one-day Actions artifact, verifies its source revision and Linux AMD64 platform, then publishes it to `ghcr.io/rustyminyr/studio_gq_website` using the job's temporary `GITHUB_TOKEN`. It does not rebuild the image or request a Coolify deployment.
+**Publish verified Studio GQ image** runs for updates to `main` and the temporary `codex/immutable-image-pilot` branch. It can also be run manually from the intended Git ref. The workflow runs the existing Coolify checks first, transfers their exact Docker image through a one-day Actions artifact, verifies its source revision and Linux AMD64 platform, then publishes it to `ghcr.io/rustyminyr/studio_gq_website` using the job's temporary `GITHUB_TOKEN`. It does not rebuild the image or request a Coolify deployment.
 
 Each tag contains the full source commit, Actions run ID and run attempt. Rebuilding the same commit produces a separate tag. Download the `studio-gq-release-...` artifact and retain `release.json` with the deployment record; its `image_reference` pins the exact registry digest. Use that reference for promotion and rollback, and retain the corresponding registry image.
 
 Package visibility is not changed by the workflow. Keep the package private during the pilot; the deployment server needs a separately configured credential that can pull it. Publishing permission and server pull permission are independent.
+
+Deployment currently runs locally through `ops/Invoke-StudioGQRelease.ps1` in the Windows Deployment workspace. It validates the successful publishing run and release artifact, then reads Coolify API tokens from local Windows DPAPI storage. Those tokens are not uploaded to GitHub. Use the receipt returned by that command for read-only resume or explicit image rollback. The optional future CI deployment template is kept outside `.github/workflows`; see [release tooling](deployment/README.md).
 
 ## Staging pilot
 
