@@ -1,0 +1,112 @@
+name: Publish verified Studio GQ image
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, codex/immutable-image-pilot]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: studio-gq-image-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    uses: ./.github/workflows/coolify.yml
+    with:
+      export_image: true
+    permissions:
+      contents: read
+
+  publish:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_reference: ${{ steps.release.outputs.image_reference }}
+      source_commit: ${{ github.sha }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          artifact-ids: ${{ needs.verify.outputs.checked_image_artifact_id }}
+          path: ${{ runner.temp }}/studio-gq-image
+          merge-multiple: true
+
+      - name: Identify the exact release
+        id: metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          tag="sha-${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          printf 'image=%s\ntag=%s\n' "$image" "$tag" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish the checked image without rebuilding
+        id: image
+        shell: bash
+        env:
+          IMAGE_NAME: ${{ steps.metadata.outputs.image }}
+          IMAGE_TAG: ${{ steps.metadata.outputs.tag }}
+          IMAGE_ARCHIVE: ${{ runner.temp }}/studio-gq-image/studio-gq-image.tar
+        run: |
+          set -euo pipefail
+          docker load --input "$IMAGE_ARCHIVE"
+          revision="$(docker image inspect studio-gq-test --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+          test "$revision" = "$GITHUB_SHA"
+          test "$(docker image inspect studio-gq-test --format '{{.Os}}/{{.Architecture}}')" = 'linux/amd64'
+          docker tag studio-gq-test "${IMAGE_NAME}:${IMAGE_TAG}"
+          docker push "${IMAGE_NAME}:${IMAGE_TAG}"
+          digest="$(docker image inspect "${IMAGE_NAME}:${IMAGE_TAG}" --format '{{json .RepoDigests}}' | jq -er --arg prefix "${IMAGE_NAME}@" '.[] | select(startswith($prefix)) | split("@")[1]')"
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          printf 'digest=%s\n' "$digest" >> "$GITHUB_OUTPUT"
+
+      - name: Record the immutable release
+        id: release
+        shell: bash
+        env:
+          IMAGE_NAME: ${{ steps.metadata.outputs.image }}
+          IMAGE_TAG: ${{ steps.metadata.outputs.tag }}
+          IMAGE_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          set -euo pipefail
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          reference="${IMAGE_NAME}@${IMAGE_DIGEST}"
+          mkdir -p release
+          jq -n \
+            --arg source_repository "$GITHUB_REPOSITORY" \
+            --arg source_commit "$GITHUB_SHA" \
+            --arg image_name "$IMAGE_NAME" \
+            --arg image_tag "$IMAGE_TAG" \
+            --arg image_digest "$IMAGE_DIGEST" \
+            --arg image_reference "$reference" \
+            --arg workflow_run "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            '{schema_version: 1, source_repository: $source_repository, source_commit: $source_commit, image_name: $image_name, image_tag: $image_tag, image_digest: $image_digest, image_reference: $image_reference, workflow_run: $workflow_run, run_attempt: $run_attempt}' \
+            > release/release.json
+          printf 'image_reference=%s\n' "$reference" >> "$GITHUB_OUTPUT"
+          {
+            printf '### Verified image ready for deployment\n\n'
+            printf -- '- Commit: `%s`\n' "$GITHUB_SHA"
+            printf -- '- Image: `%s`\n' "$reference"
+            printf -- '- Tag: `%s`\n' "$IMAGE_TAG"
+            printf '\nPublishing does not deploy a Coolify resource. Use the recorded digest for promotion or rollback.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: studio-gq-release-${{ github.sha }}-${{ github.run_attempt }}
+          path: release/release.json
+          if-no-files-found: error
+          retention-days: 90
