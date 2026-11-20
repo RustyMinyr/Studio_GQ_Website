@@ -1,7 +1,7 @@
 name: Coolify checks
 on:
   push:
-    branches: [main, codex/studio-gq-coolify]
+    branches: [main, codex/studio-gq-coolify, security/next-20261121-lho-348edb4]
   pull_request:
 permissions:
   contents: read
