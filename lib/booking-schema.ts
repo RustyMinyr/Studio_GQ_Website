@@ -116,7 +116,7 @@ export const bookingSchema = z
       .max(14, "Choose up to 14 booking dates per enquiry.")
       .refine((dates) => new Set(dates).size === dates.length, "Choose each date once."),
     session: z.enum(bookingSessionValues, {
-      errorMap: () => ({ message: "Choose a booking session." }),
+      error: "Choose a booking session.",
     }),
     name: z.string().trim().min(2, "Enter your name.").max(100),
     company: z.string().trim().max(120).optional(),
